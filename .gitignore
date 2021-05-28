@@ -32,8 +32,6 @@
 *.app
 
 # Outputs
-*.out
-*.txt
 ./output
 ./output/*.out
 ./output/*.txt
