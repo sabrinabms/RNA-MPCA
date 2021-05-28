@@ -30,3 +30,11 @@
 *.exe
 *.out
 *.app
+
+# Outputs
+*.out
+*.txt
+./output
+./output/*.out
+./output/*.txt
+./output/*.best

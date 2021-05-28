@@ -1,0 +1,18 @@
+#!/bin/bash
+# Script for auto-configuring the Artificial Neural Network
+
+make
+
+rm -f ./output/*.out
+rm -f ./output/*.dat
+rm -f ./output/*.best
+rm -f ./output/*.txt
+
+EXP=$1
+PRC=$2
+
+clear
+for (( j=1; j<=$EXP; j++ ))
+do
+    mpirun -n $PRC ./annMPCA $j
+done
