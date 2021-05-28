@@ -32,7 +32,6 @@
 *.app
 
 # Outputs
-./output
-./output/*.out
-./output/*.txt
-./output/*.best
+*.out
+*.txt
+*.best
