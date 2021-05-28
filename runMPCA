@@ -14,5 +14,5 @@ PRC=$2
 clear
 for (( j=1; j<=$EXP; j++ ))
 do
-    mpirun -n $PRC ./annMPCA $j
+    mpirun --allow-run-as-root -n $PRC ./annMPCA $j
 done
