@@ -77,14 +77,15 @@ CONTAINS
             end if
         end do
 
-        PRINT*, 'MELHOR RESULTADO:'
-        PRINT*, 'Função objetivo MPCA:', bfitness
-		PRINT*, 'Numero camadas', config % hiddenLayers
-		PRINT*, 'N.Neuronios C.1:', config % neuronsLayer(1)
+        PRINT*, 'Best objective function value: ', bfitness
+        PRINT*, 'Number of hidden layers: ', config % hiddenLayers
+        PRINT*, 'Neurons in hidden layer 1: ', config % neuronsLayer(1)
         if (config % hiddenLayers < 1) then
-            PRINT*, 'N.Neuronios C.2:',  config % neuronsLayer(2)
+            PRINT*, 'Neurons in hidden layer 2: ',  config % neuronsLayer(2)
         end if
-		PRINT*, 'Funcao de ativacao',  config % activationFunction
+        PRINT*,'Activation function: ', config % activationFunction
+        PRINT*, 'Alpha: '
+        PRINT*, 'Eta: '
 
         close(20)
 
@@ -96,45 +97,34 @@ CONTAINS
             WRITE (str1, '(I3)') bExperiment
         END IF
 
-        PRINT*, 'MELHOR RESULTADO: ./output/ann' // trim(str1) // '.best'
+        PRINT*, 'Best result: ./output/ann' // trim(str1) // '.best'
 
         open(12, FILE = './output/ann' // trim(str1) // '.best')
         open(13, file = './output/nn.best')
 
         read(12, '(A)') dummy
-!        print*, dummy
         read(12, *) fitness
         write(13, *) fitness
-!        PRINT*,fitness
 
         read(12, '(A)') dummy
-!        PRINT*, dummy
         read(12, *) activationFunction
         write(13, '(I3)') activationFunction
-!        PRINT*, activationFunction
 
         read(12, '(A)') dummy
-!        print*, dummy
         read(12, *) hiddenLayers
         write(13, '(I3)') hiddenLayers
-!        PRINT*, hiddenLayers
 
         read(12, '(A)') dummy
-!        print*, dummy
         read(12, *) neuronsLayer(1)
         write(13, '(I3)') neuronsLayer(1)
-!        PRINT*, neuronsLayer(1)
 
         if (config % hiddenLayers > 1) then
             read(12, '(A)') dummy
-!            print*, dummy
             read(12, *) neuronsLayer(2)
             write(13, '(I3)') neuronsLayer(2)
-!            PRINT*,  config % neuronsLayer(2)
         end if
 
         read(12, *) dummy
-!        print*, dummy
         write(13, '(A)') dummy
 
 
@@ -330,7 +320,6 @@ REAL(8) FUNCTION neuralNetwork(config)
 
         ! CALCULO ERRO TREINAMENTO
         error(:, i) = y_gen(:, i) - ys(:, i)
-!	write(*,*) y_gen(:, i), ys(:, i)
 
     ENDDO
     eqm = sum(error)
