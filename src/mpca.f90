@@ -331,7 +331,6 @@ PROGRAM MPCA
                 oldParticle(contP) % solution(contD) = (harvest &
                     & * (op % upperBound(contD) - op % lowerBound(contD))) &
                     & + op % lowerBound(contD)
-                ! print*,'soluçao:',  oldParticle(contP) % solution(contD)
             end do
         end if
         exit
@@ -350,7 +349,6 @@ PROGRAM MPCA
             bestParticleProcessor = bestParticle(contP)
         end if
     END DO
-    ! print*, 'Saiu do loop: população inicial'
 
     !***************************************************************************
     ! PRINCIPAL LOOP
@@ -361,7 +359,6 @@ PROGRAM MPCA
         .and. (.not. doStopMPCA) &
         )
         !PARTICLES LOOP (OpenMP)
-        ! print*,'Entrou no Loop Principal'
         DO contP = 1, op % nParticlesProcessor
             CALL Perturbation(oldParticle(contP), newParticle(contP), bestParticle(contP), op, st, config)
             IF (newParticle(contP) % fitness < oldParticle(contP) % fitness) THEN

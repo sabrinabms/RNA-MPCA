@@ -11,9 +11,10 @@ PROGRAM MAIN_GENERALIZATION
     READ (string, '(I10)') nExperiments
     CALL getarg(2, string)
     READ (string, '(I10)') nProcessors
-
-    write(*,*) 'nExperiments', nExperiments
-    write(*,*) 'nProcessors', nProcessors
+    print*, '************************************************************'
+    print*, 'Num. exps: ', nExperiments
+    print*, 'Num. procs: ', nProcessors
+    print*, '************************************************************'
     
     call annBackpropagation(nExperiments, nProcessors)
     
