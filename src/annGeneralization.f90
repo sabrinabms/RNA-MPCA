@@ -191,7 +191,7 @@ CONTAINS
         read(12, *) (config % bs(k), k = 1, config % nOutputs)
         write(13, fString) (config % bs(k), k = 1, config % nOutputs)
 
-        write(*, *) 'Activating ANN'
+!        write(*, *) 'Activating ANN: '
         mse = neuralNetwork(config)
 
         write(13, '(A)') 'mse'
@@ -325,7 +325,7 @@ REAL(8) FUNCTION neuralNetwork(config)
     eqm = sum(error)
     eqm = (1.d0/(config % nClasses)) * eqm
 
-    write(*,*) "Passou por aqui - result_ys.out"
+    write(*,*) "result_ys.out"
     open(12, file = './output/result_ys.out')
     fString = '(   F11.5)'
     write(fString(2:4), '(I3)') config % nOutputs
