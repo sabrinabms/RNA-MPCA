@@ -35,7 +35,9 @@ PROGRAM MAIN_ACTIVATION
             tryInitialArchitecture
             !tryFixedConfiguration
 
-    print*, 'ENTROU NA ATIVACAO DA RNA'
+    print*,'****************************************************************'
+    print*, '                   RNA Activation'
+    print*,'****************************************************************'
     OPEN(1, FILE='./config/configuration.ini', STATUS='OLD', ACTION='READ')
     READ(1, content)
     CLOSE(1)
@@ -44,9 +46,7 @@ PROGRAM MAIN_ACTIVATION
     config % nInputs = nInputs
     config % nOutputs = nOutputs
 
-    print*, 'N. Classes', config % nClassesActivation
-    print*, 'N. Entradas', config % nInputs
-    print*, 'N. Saidas', config % nOutputs
+    print*,'Number of activation classes: ', config % nClassesActivation
 
     allocate(config % x(config % nInputs, config % nClassesActivation))
     allocate(config % y(config % nOutputs, config % nClassesActivation))
@@ -75,8 +75,12 @@ PROGRAM MAIN_ACTIVATION
     read(12, *) config % activationFunction
     read(12, *) config % hiddenLayers
     read(12, *) config % neuronsLayer(1)
+    print*,' Number of hidden layers: ', config % hiddenLayers
+    print*,' Neurons in hidden layer 1: ',  config % neuronsLayer(1)
+    print*,' Activation function:            3
     if (config % hiddenLayers > 1) then
         read(12, *) config % neuronsLayer(2)
+        print*,' Neurons in hidden layer 2: ', config % neuronsLayer(2)
     end if
 
     ! Allocating space for config
@@ -136,7 +140,6 @@ PROGRAM MAIN_ACTIVATION
     read(12, *) (config % bs(k), k = 1, config % nOutputs)
     close(12)
 
-    config % activationFunction = 2
     MSE = neuralNetworkActivation(config)
 
     deallocate(config % bh1)

@@ -17,7 +17,6 @@ CONTAINS
 
         IMPLICIT NONE
 
-!        TYPE(OptionsMPCA), intent(in) :: op
         TYPE(annConfig), intent(in) :: config
 
         real (8) :: BestFO
