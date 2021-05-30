@@ -77,7 +77,7 @@ PROGRAM MAIN_ACTIVATION
     read(12, *) config % neuronsLayer(1)
     print*,' Number of hidden layers: ', config % hiddenLayers
     print*,' Neurons in hidden layer 1: ',  config % neuronsLayer(1)
-    print*,' Activation function:            3
+
     if (config % hiddenLayers > 1) then
         read(12, *) config % neuronsLayer(2)
         print*,' Neurons in hidden layer 2: ', config % neuronsLayer(2)
