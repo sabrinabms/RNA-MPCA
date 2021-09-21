@@ -46,13 +46,13 @@ PROGRAM MAIN_ACTIVATION
     config % nInputs = nInputs
     config % nOutputs = nOutputs
 
-    print*,'Number of activation classes: ', config % nClassesActivation
-
     allocate(config % x(config % nInputs, config % nClassesActivation))
     allocate(config % y(config % nOutputs, config % nClassesActivation))
 
     fString = '(      F8.5)'
     write(fString(2:7), '(I6)') config % nClassesActivation
+
+    print*,' Number of activation classes: ', config % nClassesActivation
 
     OPEN (2, file = './data/x_gen.txt')
     DO i = 1, config % nInputs

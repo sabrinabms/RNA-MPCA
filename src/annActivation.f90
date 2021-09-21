@@ -26,11 +26,11 @@ CONTAINS
         real (8) :: aux
         real (8), allocatable, dimension(:) :: vs
         real (8), allocatable, dimension(:,:) :: error
-        real (8), allocatable, dimension(:) :: vh1
-        real (8), allocatable, dimension(:) :: vh2
-        real (8), allocatable, dimension(:) :: errorClass
         real (8), allocatable, dimension(:) :: yh1
+        real (8), allocatable, dimension(:) :: vh1
+        real (8), allocatable, dimension(:) :: errorClass
         real (8), allocatable, dimension(:) :: yh2
+        real (8), allocatable, dimension(:) :: vh2
         real (8), allocatable, dimension(:,:) :: y
 
 
@@ -49,8 +49,9 @@ CONTAINS
         integer :: k
 
         !Allocating space for error variables
-        allocate(error(config % nOutputs, config % nClasses))
-        allocate(errorClass(config % nClasses))
+        !allocate(error(config % nOutputs, config % nClasses))
+        allocate(error(config % nOutputs, config % nClassesActivation))
+        allocate(errorClass(config % nClassesActivation))
 
         ! Allocating space for v and y variables
         allocate(vh1(config % neuronsLayer(1)))
@@ -58,26 +59,26 @@ CONTAINS
         if (config % hiddenLayers == 2) then
             allocate(vh2(config % neuronsLayer(2)))
             allocate(yh2(config % neuronsLayer(2)))
-        else
-            allocate(vh2(1))
-            allocate(yh2(1))
+!        else
+!            allocate(vh2(1))
+!            allocate(yh2(1))
         end if
         allocate(vs(config % nOutputs))
 
-        neuralNetworkActivation = 0
+        neuralNetworkActivation = 0 ! inicializando variavel
 
         !----------------------------------------------------------------------!
         ! ACTIVATION
         !----------------------------------------------------------------------!
-        allocate(y(config % nOutputs, config % nClasses))
+        allocate(y(config % nOutputs, config % nClassesActivation))
 
         fString = '(      F8.5)'
-        write(fString(2:7), '(I6)') config % nClasses
+        write(fString(2:7), '(I6)') config % nClassesActivation
 
-        do i = 1, config % nClasses
+        do i = 1, config % nClassesActivation
             ! ACTIVATING HIDDEN LAYER 1
             vh1 = matmul(config % x(:, i), config % wh1) - config % bh1
-            fString = '(      F8.5)'
+            fString = '(F8.5)'
             write(fString(2:7), '(I6)') config % neuronsLayer(1)
 
             yh1 = activation(vh1, config % activationFunction)
@@ -98,12 +99,12 @@ CONTAINS
             error(:, i) = config % y(:, i) - y(:, i)
         end do
 
-        neuralNetworkActivation = sum(error) / dfloat(config % nClasses)
+        neuralNetworkActivation = sum(error) / dfloat(config % nClassesActivation)
 
         fString = '(      F8.5)'
         OPEN (2, file = './output/y_activation.txt')
         DO i = 1, config % nOutputs
-            write(2, fString) (y(i, j) , j = 1, config % nClasses)
+            write(2, fString) (y(i, j) , j = 1, config % nClassesActivation)
         END DO
         CLOSE (2)
 

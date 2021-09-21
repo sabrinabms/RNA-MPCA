@@ -74,7 +74,7 @@ PROGRAM MPCA
     logical :: doStopMPCA = .false.
 
 
- NAMELIST /content/ nClasses, &
+    NAMELIST /content/ nClasses, &
          nClassesValidation, &
          nClassesGeneralization, &
          nClassesActivation, &
@@ -215,8 +215,7 @@ PROGRAM MPCA
     END DO
     allocate(realSolution(op % nDimensions))
 
-    OPEN(1, FILE='./config/configuration.ini', STATUS='OLD',  &
-      ACTION='READ')
+    OPEN(1, FILE='./config/configuration.ini', STATUS='OLD', ACTION='READ')
     read(1, content)
     read(1, bounds)
     read(1, initial)
@@ -445,16 +444,16 @@ PROGRAM MPCA
             call write_formatted('Best objective function value: ', 'bright normal', &
                 real_to_string_scientific(bestParticleProcessor % fitness, 1, 4, 3), 'normal')
             call write_formatted('Number of hidden layers: ', 'bright normal', &
-                integer_to_string(nint(bestParticleProcessor % solution(1)), 2), 'normal')
+                integer_to_string(ceiling(bestParticleProcessor % solution(1)), 2), 'normal')
             call write_formatted('Neurons in hidden layer 1: ', 'bright normal', &
-                integer_to_string(nint(bestParticleProcessor % solution(2)), 2), 'normal')
-            IF (nint(bestParticleProcessor % solution(1)) == 2) THEN
+                integer_to_string(ceiling(bestParticleProcessor % solution(2)), 2), 'normal')
+            IF (ceiling(bestParticleProcessor % solution(1)) == 2) THEN
                 call write_formatted('Neurons in hidden layer 2: ', 'bright normal', &
-                    integer_to_string(nint(bestParticleProcessor % solution(3)), 2), 'normal')
+                    integer_to_string(ceiling(bestParticleProcessor % solution(3)), 2), 'normal')
             END IF
 
             call write_formatted('Activation function: ', 'bright normal', &
-                integer_to_string(nint(bestParticleProcessor % solution(4)), 2), 'normal')
+                integer_to_string(ceiling(bestParticleProcessor % solution(4)), 2), 'normal')
 
             call write_formatted('Alpha: ', 'bright normal', &
                 real_to_string(bestParticleProcessor % solution(5), 1, 4), 'normal')

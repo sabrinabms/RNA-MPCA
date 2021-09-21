@@ -39,6 +39,7 @@ CONTAINS
         real (8), allocatable, dimension(:,:) :: deltaWeightOutput
         real (8), allocatable, dimension(:,:) :: deltaWeightHiddenLayer1
         real (8), allocatable, dimension(:,:) :: deltaWeightHiddenLayer2
+
         real (8), allocatable, dimension(:) :: deltaBiasOutput
         real (8), allocatable, dimension(:) :: deltaBiasHiddenLayer1
         real (8), allocatable, dimension(:) :: deltaBiasHiddenLayer2
@@ -46,6 +47,7 @@ CONTAINS
         real (8), allocatable, dimension(:,:) :: deltaWeightOutputLast
         real (8), allocatable, dimension(:,:) :: deltaWeightHiddenLayer1Last
         real (8), allocatable, dimension(:,:) :: deltaWeightHiddenLayer2Last
+
         real (8), allocatable, dimension(:) :: deltaBiasOutputLast
         real (8), allocatable, dimension(:) :: deltaBiasHiddenLayer1Last
         real (8), allocatable, dimension(:) :: deltaBiasHiddenLayer2Last
@@ -65,18 +67,18 @@ CONTAINS
         integer :: k
         integer :: epoch
 
-        integer :: hiddenLayers, neuronsLayer(2), activationFunction
-        INTEGER (kind = 8) :: nClasses
-        INTEGER (kind = 8) :: nClassesValidation
-        INTEGER (kind = 8) :: nClassesGeneralization
-        INTEGER (kind = 8) :: nClassesActivation
-        INTEGER (kind = 8) :: nInputs
-        INTEGER (kind = 8) :: nOutputs
-        REAL (kind = 8) :: targetError
-        INTEGER (kind = 8) :: nEpochs
-        integer :: loadWeightsBias
-        LOGICAL :: haveValidation
-        logical :: tryInitialArchitecture
+!        integer :: hiddenLayers, neuronsLayer(2), activationFunction
+!        INTEGER (kind = 8) :: nClasses
+!        INTEGER (kind = 8) :: nClassesValidation
+!        INTEGER (kind = 8) :: nClassesGeneralization
+!        INTEGER (kind = 8) :: nClassesActivation
+!        INTEGER (kind = 8) :: nInputs
+!        INTEGER (kind = 8) :: nOutputs
+!        REAL (kind = 8) :: targetError
+!        INTEGER (kind = 8) :: nEpochs
+!        integer :: loadWeightsBias
+!        LOGICAL :: haveValidation
+!        logical :: tryInitialArchitecture
 
 !        NAMELIST /content/ nClasses, nClassesValidation,&
 !                nClassesGeneralization, &
@@ -114,20 +116,22 @@ CONTAINS
 !        print*, 'Entrou no annTraining'
 !        print*, config % nInputs, config % neuronsLayer(1)
 !        print*, config % neuronsLayer(1)
+
         ! Allocating space for config
+        !PARA PRIMEIRA CAMADA: ALOCANDO VARIAVEL
         allocate(config % wh1(config % nInputs, config % neuronsLayer(1)))
         allocate(config % bh1(config % neuronsLayer(1)))
 
-!        print*, 'Alocou memoria pesos e bias primeira camada'
+        !SE EXISTIR SEGUNDA CAMADA: ALOCANDO VARIAVEL
         if (config % hiddenLayers == 2) then
             allocate(config % wh2(config % neuronsLayer(1), config % neuronsLayer(2)))
             allocate(config % bh2(config % neuronsLayer(2)))
             allocate(config % ws(config % neuronsLayer(2), config % nOutputs))
         else
-            allocate(config % wh2(1,1))
-            allocate(config % bh2(1))
             allocate(config % ws(config % neuronsLayer(1), config % nOutputs))
         end if
+
+        !PARA CAMADA DE SAIDA: ALOCANDO VARIAVEL
         allocate(config % bs(config % nOutputs))
 
         !Allocating space for error variables
@@ -137,34 +141,37 @@ CONTAINS
         ! Allocating space for v and y variables
         allocate(vh1(config % neuronsLayer(1)))
         allocate(yh1(config % neuronsLayer(1)))
+
         if (config % hiddenLayers == 2) then
             allocate(vh2(config % neuronsLayer(2)))
             allocate(yh2(config % neuronsLayer(2)))
-        else
-            allocate(vh2(1))
-            allocate(yh2(1))
         end if
+
         allocate(vs(config % nOutputs))
         allocate(ys(config % nOutputs))
         
         !Allocating space for delta variables
+        !PARA PRIMEIRA CAMADA: ALOCANDO VARIAVEL
         allocate(deltaBiasHiddenLayer1(config % neuronsLayer(1)))
         allocate(deltaBiasHiddenLayer1Last(config % neuronsLayer(1)))
+        allocate(deltaWeightHiddenLayer1(config % nInputs, config % neuronsLayer(1)))
+        allocate(deltaWeightHiddenLayer1Last(config % nInputs, config % neuronsLayer(1)))
+
+        !SE EXISTIR SEGUNDA CAMADA: ALOCANDO VARIAVEL
         if (config % hiddenLayers == 2) then
             allocate(deltaBiasHiddenLayer2(config % neuronsLayer(2)))
             allocate(deltaBiasHiddenLayer2Last(config % neuronsLayer(2)))
             allocate(deltaWeightHiddenLayer2(config % neuronsLayer(1), config % neuronsLayer(2)))
             allocate(deltaWeightHiddenLayer2Last(config % neuronsLayer(1), config % neuronsLayer(2)))
-        else
-            allocate(deltaBiasHiddenLayer2(1))
-            allocate(deltaBiasHiddenLayer2Last(1))
-            allocate(deltaWeightHiddenLayer2(1,1))
-            allocate(deltaWeightHiddenLayer2Last(1,1))
+!        else
+!            allocate(deltaBiasHiddenLayer2(1))
+!            allocate(deltaBiasHiddenLayer2Last(1))
+!            allocate(deltaWeightHiddenLayer2(1,1))
+!            allocate(deltaWeightHiddenLayer2Last(1,1))
         end if
+
         allocate(deltaBiasOutput(config % nOutputs))
         allocate(deltaBiasOutputLast(config % nOutputs))
-        allocate(deltaWeightHiddenLayer1(config % nInputs, config % neuronsLayer(1)))
-        allocate(deltaWeightHiddenLayer1Last(config % nInputs, config % neuronsLayer(1)))
         allocate(deltaWeightOutput(config % neuronsLayer(config % hiddenLayers), config % nOutputs))
         allocate(deltaWeightOutputLast(config % neuronsLayer(config % hiddenLayers), config % nOutputs))
 
@@ -183,8 +190,8 @@ CONTAINS
         if (config % hiddenLayers == 2) then
             allocate(gradientHiddenLayer2(config % neuronsLayer(2)))
             ! print*, 'allocate(gradientHiddenLayer2(config % neuronsLayer(2)))'
-        else
-            allocate(gradientHiddenLayer2(1))
+!        else
+!            allocate(gradientHiddenLayer2(1))
             ! print*, 'allocate(gradientHiddenLayer2(1))'
         end if
         allocate(gradientOutput(config % nOutputs))
