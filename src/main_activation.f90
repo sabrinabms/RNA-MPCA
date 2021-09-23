@@ -18,8 +18,8 @@ PROGRAM MAIN_ACTIVATION
     INTEGER (kind = 8) :: nClassesActivation
     INTEGER (kind = 8) :: nInputs
     INTEGER (kind = 8) :: nOutputs
-    REAL (kind = 8) :: targetError
     INTEGER (kind = 8) :: nEpochs
+    REAL (kind = 8) :: targetError
     integer :: loadWeightsBias
     LOGICAL :: haveValidation
     logical :: tryInitialArchitecture
@@ -71,15 +71,15 @@ PROGRAM MAIN_ACTIVATION
     !--------------------------------------------------------------------!
 
     open(12, file = trim('./output/nn.best'), STATUS = "old")
-    read(12, *) dummy
+    read(12, *) dummy !Valor funcao objetivo
     read(12, *) config % activationFunction
     read(12, *) config % hiddenLayers
     read(12, *) config % neuronsLayer(1)
+    read(12, *) config % neuronsLayer(2)
+
     print*,' Number of hidden layers: ', config % hiddenLayers
     print*,' Neurons in hidden layer 1: ',  config % neuronsLayer(1)
-
     if (config % hiddenLayers > 1) then
-        read(12, *) config % neuronsLayer(2)
         print*,' Neurons in hidden layer 2: ', config % neuronsLayer(2)
     end if
 
@@ -92,10 +92,11 @@ PROGRAM MAIN_ACTIVATION
         allocate(config % bh2(config % neuronsLayer(2)))
         allocate(config % ws(config % neuronsLayer(2), config % nOutputs))
     else
-        allocate(config % wh2(1, 1))
-        allocate(config % bh2(1))
+!        allocate(config % wh2(1, 1))
+!        allocate(config % bh2(1))
         allocate(config % ws(config % neuronsLayer(1), config % nOutputs))
     end if
+
     allocate(config % bs(config % nOutputs))
 
     fString = '(   F11.5)'
@@ -141,6 +142,7 @@ PROGRAM MAIN_ACTIVATION
     close(12)
 
     MSE = neuralNetworkActivation(config)
+    print*,'Activation - Mean Square Error: ', MSE
 
     deallocate(config % bh1)
     deallocate(config % bs)

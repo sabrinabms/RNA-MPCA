@@ -104,7 +104,7 @@ CONTAINS
         fString = '(      F8.5)'
         OPEN (2, file = './output/y_activation.txt')
         DO i = 1, config % nOutputs
-            write(2, fString) (y(i, j) , j = 1, config % nClassesActivation)
+            write(2, *) (y(i, j) , j = 1, config % nClassesActivation)
         END DO
         CLOSE (2)
 
