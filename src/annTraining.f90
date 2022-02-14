@@ -8,7 +8,7 @@
 MODULE annTraining
     use newTypes
     use foul
-    use annGeneralization !alteracao para a generalizacao do Haroldo
+    use annGeneralization !alteracao para a funcao objetivo do Haroldo
 
     USE annGeneralization
 
@@ -27,7 +27,7 @@ CONTAINS
         real (8) :: rNumber
         real (8) :: dOutput
         real (8) :: penaltyObj
-        real(8) :: mse  ! erro quadratico medio da generalicao do Haroldo
+        real(8) :: mse  ! erro quadratico medio da generalicao
         real (8) :: aux
         real (8), allocatable, dimension(:) :: vs
         real (8), allocatable, dimension(:,:) :: error
@@ -126,11 +126,15 @@ CONTAINS
         !PARA PRIMEIRA CAMADA: ALOCANDO VARIAVEL
         allocate(config % wh1(config % nInputs, config % neuronsLayer(1)))
         allocate(config % bh1(config % neuronsLayer(1)))
+        allocate(vh1(config % neuronsLayer(1)))
+        allocate(yh1(config % neuronsLayer(1)))
 
         !SE EXISTIR SEGUNDA CAMADA: ALOCANDO VARIAVEL
         if (config % hiddenLayers == 2) then
             allocate(config % wh2(config % neuronsLayer(1), config % neuronsLayer(2)))
             allocate(config % bh2(config % neuronsLayer(2)))
+            allocate(vh2(config % neuronsLayer(2)))
+            allocate(yh2(config % neuronsLayer(2)))
             allocate(config % ws(config % neuronsLayer(2), config % nOutputs))
         else
             allocate(config % ws(config % neuronsLayer(1), config % nOutputs))
@@ -138,22 +142,12 @@ CONTAINS
 
         !PARA CAMADA DE SAIDA: ALOCANDO VARIAVEL
         allocate(config % bs(config % nOutputs))
+        allocate(vs(config % nOutputs))
+        allocate(ys(config % nOutputs))
 
         !Allocating space for error variables
         allocate(error(config % nOutputs, config % nClasses))
         allocate(errorClass(config % nClasses))
-
-        ! Allocating space for v and y variables
-        allocate(vh1(config % neuronsLayer(1)))
-        allocate(yh1(config % neuronsLayer(1)))
-
-        if (config % hiddenLayers == 2) then
-            allocate(vh2(config % neuronsLayer(2)))
-            allocate(yh2(config % neuronsLayer(2)))
-        end if
-
-        allocate(vs(config % nOutputs))
-        allocate(ys(config % nOutputs))
         
         !Allocating space for delta variables
         !PARA PRIMEIRA CAMADA: ALOCANDO VARIAVEL
@@ -242,6 +236,7 @@ CONTAINS
             DO k = 1, config % nOutputs
                 config % bs(k) = 0.5
             ENDDO
+
         CASE (1) ! All parameters randomly initialized
             DO i = 1, config % nInputs
                 DO k = 1, config % neuronsLayer(1)
@@ -339,21 +334,18 @@ CONTAINS
         end if
 
         DO WHILE (epoch .LT. config % nEpochs)
-            ! print*, 'Entrou no while nEpochs'
             deltaWeightOutputLast = deltaWeightOutput
             deltaWeightHiddenLayer1Last = deltaWeightHiddenLayer1
             deltaWeightHiddenLayer2Last = deltaWeightHiddenLayer2
             deltaBiasOutputLast = deltaBiasOutput
             deltaBiasHiddenLayer1Last = deltaBiasHiddenLayer1
             deltaBiasHiddenLayer2Last = deltaBiasHiddenLayer2
-            ! print*, 'Alocou memoria dentro do loop NEpochs'
             epoch = epoch + 1
 
             DO i = 1, config % nClasses
                 ! ACTIVATING HIDDEN LAYER 1
                 vh1 = matmul(config % x(:, i), config % wh1) - config % bh1
                 yh1 = activation(vh1, config % activationFunction)
-                ! print*,'matmul'
                 if (config % hiddenLayers == 1) then
                     vs = matmul(yh1, config % ws) - config % bs
                 end if
@@ -367,7 +359,6 @@ CONTAINS
 
                 ! ACTIVATING OUTPUT
                 ys = activation(vs, config % activationFunction)
-                ! print*,'ys = activation'
                 error(:, i) = config % y(:, i) - ys
 
                 !CALCULO PADRAO DO ERRO
@@ -379,9 +370,7 @@ CONTAINS
                 !-------------------------------------------------------------------------!
                 !TRAINING OUTPUT LAYER
                 do j = 1, config % nOutputs
-                    ! print*,'entrou no loop backpropagation'
                     dOutput = derivate(vs(j), ys(j), config % activationFunction)
-
                     gradientOutput(j) = error(j, i) * dOutput
 
                     if (config % hiddenLayers == 1) then
@@ -401,7 +390,6 @@ CONTAINS
                 enddo
 
                 !TRAINING HIDDEN LAYER 2
-		
                 if (config % hiddenLayers == 2) then
                     do j = 1, config % neuronsLayer(2)
                         dOutput = derivate(vh2(j), yh2(j), config % activationFunction)
@@ -412,9 +400,7 @@ CONTAINS
                             enddo
                         end if
 
-                        ! print*,'entrou training hidden layer 2'
                         gradientHiddenLayer2(j) = dOutput * aux
-
                         deltaWeightHiddenLayer2(:, j) = config % eta * gradientHiddenLayer2(j) * yh1
                         deltaBiasHiddenLayer2(j) = dfloat(-1) * config % eta * gradientHiddenLayer2(j)
 
@@ -425,6 +411,7 @@ CONTAINS
                         config % bh2(j) = config % bh2(j) &
                             & + deltaBiasHiddenLayer2(j) &
                             & + config % alpha * deltaBiasHiddenLayer2Last(j)
+
                     end do
                 end if
 
