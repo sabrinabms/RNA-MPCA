@@ -8,6 +8,10 @@
 MODULE annTraining
     use newTypes
     use foul
+    use annGeneralization !alteracao para a generalizacao do Haroldo
+
+    USE annGeneralization
+
 
 CONTAINS
 
@@ -23,6 +27,7 @@ CONTAINS
         real (8) :: rNumber
         real (8) :: dOutput
         real (8) :: penaltyObj
+        real(8) :: mse  ! erro quadratico medio da generalicao do Haroldo
         real (8) :: aux
         real (8), allocatable, dimension(:) :: vs
         real (8), allocatable, dimension(:,:) :: error
@@ -462,7 +467,8 @@ CONTAINS
             if (config % haveValidation .eqv. .true.) then
                 do i = 1, config % nClassesValidation
                     ! ACTIVATING HIDDEN LAYER 1
-                    vh1 = matmul(config % x(:, i), config % wh1) - config % bh1
+!                    vh1 = matmul(config % x(:, i), config % wh1) - config % bh1
+                    vh1 = matmul(config % x_valid(:, i), config % wh1) - config % bh1
                     yh1 = activation(vh1, config % activationFunction)
 
                     if (config % hiddenLayers == 1) then
@@ -502,13 +508,17 @@ CONTAINS
             !& + 1e+6 * p1 * exp(dfloat(config % neuronsLayer(2))) &
             !& + p2 * dfloat(config % nEpochs) &
 
-        IF (config % haveValidation .eqv. .true.) THEN
-            neuralNetworkTraining = penaltyObj &
-                & * ((alphaObj * config % MeanSquaredError + betaObj * config % MeanSquaredErrorValidation) &
+!        IF (config % haveValidation .eqv. .true.) THEN
+!            neuralNetworkTraining = penaltyObj &
+!                & * ((alphaObj * config % MeanSquaredError + betaObj * config % MeanSquaredErrorValidation) &
+!                & / (alphaObj + betaObj))
+!        ELSE
+!            neuralNetworkTraining = penaltyObj * config % MeanSquaredError
+!        ENDIF
+        mse = neuralNetwork(config) ! generalizacao do Haroldo
+        neuralNetworkTraining = penaltyObj &
+                & * ((alphaObj * config % MeanSquaredError + betaObj * mse) &
                 & / (alphaObj + betaObj))
-        ELSE
-            neuralNetworkTraining = penaltyObj * config % MeanSquaredError
-        ENDIF
 
         ! Store configuration if objFunction is best
         if (neuralNetworkTraining < st % bestObjectiveFunction) then

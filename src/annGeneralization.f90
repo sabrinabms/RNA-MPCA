@@ -49,7 +49,7 @@ CONTAINS
             read(1, content)
         close(1)
 
-        config % nClasses = nClassesGeneralization
+!        config % nClasses = nClassesGeneralization
         config % nInputs = nInputs
         config % nOutputs = nOutputs
 
@@ -227,8 +227,9 @@ REAL(8) FUNCTION neuralNetwork(config)
     double precision, allocatable, dimension(:,:) :: y_gen
     double precision, allocatable, dimension(:) :: vs
     double precision, allocatable, dimension(:,:) :: ys
-    double precision, allocatable, dimension(:,:) :: error
     double precision :: eqm
+    double precision, allocatable, dimension(:,:) :: error
+    real (8), allocatable, dimension(:) :: errorClass
     double precision, allocatable, dimension(:) :: vh1, vh2
     double precision, allocatable, dimension(:) :: yh1, yh2
 
@@ -238,11 +239,12 @@ REAL(8) FUNCTION neuralNetwork(config)
     character(32) :: fString
 
     !Bias 1. camada oculta
-    allocate(error(config % nOutputs, config % nClasses))
-    allocate(x_gen(config % nInputs, config % nClasses))
-    allocate(y_gen(config % nOutputs, config % nClasses))
+    allocate(x_gen(config % nInputs, config % nClassesGeneralization))
+    allocate(y_gen(config % nOutputs, config % nClassesGeneralization))
     allocate(vh1(config % neuronsLayer(1)))
     allocate(yh1(config % neuronsLayer(1)))
+    allocate(error(config % nOutputs, config % nClassesGeneralization))
+    allocate(errorClass(config % nClassesGeneralization))
 
     if (config % hiddenLayers == 2) then
         allocate(vh2(config % neuronsLayer(2)))
@@ -250,20 +252,20 @@ REAL(8) FUNCTION neuralNetwork(config)
     end if
 
     allocate(vs(config % nOutputs))
-    allocate(ys(config % nOutputs, config % nClasses))
+    allocate(ys(config % nOutputs, config % nClassesGeneralization))
 
     !------------------------------------------------------------!
     !LENDO OS PARAMETROS DO ARQUIVO DE ENTRADA
     !------------------------------------------------------------!
     OPEN (1, file = './data/y_gen.txt')
     DO I = 1, config % nOutputs
-        READ(1, *) (y_gen(I, J), J = 1, config % nClasses)
+        READ(1, *) (y_gen(I, J), J = 1, config % nClassesGeneralization)
     END DO
     CLOSE (1)
 
     OPEN (2, file = './data/x_gen.txt')
     DO I = 1, config % nInputs
-        READ(2, *) (x_gen(I, J), J = 1, config % nClasses)
+        READ(2, *) (x_gen(I, J), J = 1, config % nClassesGeneralization)
     END DO
     CLOSE (2)
 
@@ -271,7 +273,7 @@ REAL(8) FUNCTION neuralNetwork(config)
     ! INICIO DA REDE: FEEDFORWARD
     !----------------------------------------------------------------------!
 
-    DO i = 1, config % nClasses
+    DO i = 1, config % nClassesGeneralization
         ! ATIVACAO CAMADA OCULTA 1
         vh1 = 0.d0
         vh1 = matmul(x_gen(:, i), config % wh1)
@@ -319,18 +321,21 @@ REAL(8) FUNCTION neuralNetwork(config)
         end select
 
         ! CALCULO ERRO TREINAMENTO
-        error(:, i) = y_gen(:, i) - ys(:, i)
 
+        error(:, i) = y_gen(:, i) - ys(:,i)
+        errorClass(i) = sum(error(:, i), dim = 1)
+        errorClass(i) = 0.5d0 * (errorClass(i)**2.d0)
     ENDDO
-    eqm = sum(error)
-    eqm = (1.d0/(config % nClasses)) * eqm
 
-    write(*,*) "result_ys.out"
+    eqm = sum(errorClass) / dfloat(config % nClassesGeneralization)
+
+
+!    write(*,*) "result_ys.out"
     open(12, file = './output/result_ys.out')
     fString = '(   F11.5)'
     write(fString(2:4), '(I3)') config % nOutputs
     do i = 1, config % nOutputs
-        write(12, fString) (ys(i, j), j = 1, config % nClasses)
+        write(12, fString) (ys(i, j), j = 1, config % nClassesGeneralization)
     end do
     close(12)
 

@@ -35,3 +35,8 @@
 *.out
 *.txt
 *.best
+
+# Bck
+*.bck
+*_bck
+*-checkpoint.ipynb

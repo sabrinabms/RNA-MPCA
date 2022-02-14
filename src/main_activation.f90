@@ -51,7 +51,6 @@ PROGRAM MAIN_ACTIVATION
 
     fString = '(      F8.5)'
     write(fString(2:7), '(I6)') config % nClassesActivation
-
     print*,' Number of activation classes: ', config % nClassesActivation
 
     OPEN (2, file = './data/x_gen.txt')
