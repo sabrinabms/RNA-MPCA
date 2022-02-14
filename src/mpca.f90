@@ -10,6 +10,7 @@
 PROGRAM MPCA
 
     USE annTraining
+    USE annGeneralization
     USE mpcaFunctions
     USE newTypes
 
