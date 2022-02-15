@@ -10,8 +10,6 @@ MODULE annTraining
     use foul
     use annGeneralization !alteracao para a funcao objetivo do Haroldo
 
-    USE annGeneralization
-
 
 CONTAINS
 
@@ -27,19 +25,22 @@ CONTAINS
         real (8) :: rNumber
         real (8) :: dOutput
         real (8) :: penaltyObj
-        real(8) :: mse  ! erro quadratico medio da generalicao
         real (8) :: aux
         real (8), allocatable, dimension(:) :: vs
-        real (8), allocatable, dimension(:,:) :: error
         real (8), allocatable, dimension(:) :: vh1
         real (8), allocatable, dimension(:) :: vh2
-        real (8), allocatable, dimension(:) :: errorClass
         real (8), allocatable, dimension(:) :: yh1
         real (8), allocatable, dimension(:) :: yh2
         real (8), allocatable, dimension(:) :: ys
         real (8), allocatable, dimension(:) :: gradientOutput
         real (8), allocatable, dimension(:) :: gradientHiddenLayer1
         real (8), allocatable, dimension(:) :: gradientHiddenLayer2
+
+        real(8) :: meanSquaredErrorGen  ! erro quadratico medio da generalicao
+        real (8), allocatable, dimension(:) :: errorClassTrain
+        real (8), allocatable, dimension(:) :: errorClassValid
+        real (8), allocatable, dimension(:,:) :: errorTrain
+        real (8), allocatable, dimension(:,:) :: errorValid
 
         real (8), allocatable, dimension(:,:) :: deltaWeightOutput
         real (8), allocatable, dimension(:,:) :: deltaWeightHiddenLayer1
@@ -72,55 +73,12 @@ CONTAINS
         integer :: k
         integer :: epoch
 
-!        integer :: hiddenLayers, neuronsLayer(2), activationFunction
-!        INTEGER (kind = 8) :: nClasses
-!        INTEGER (kind = 8) :: nClassesValidation
-!        INTEGER (kind = 8) :: nClassesGeneralization
-!        INTEGER (kind = 8) :: nClassesActivation
-!        INTEGER (kind = 8) :: nInputs
-!        INTEGER (kind = 8) :: nOutputs
-!        REAL (kind = 8) :: targetError
-!        INTEGER (kind = 8) :: nEpochs
-!        integer :: loadWeightsBias
-!        LOGICAL :: haveValidation
-!        logical :: tryInitialArchitecture
-
-!        NAMELIST /content/ nClasses, nClassesValidation,&
-!                nClassesGeneralization, &
-!                nClassesActivation, &
-!                nInputs, nOutputs, &
-!                targetError, nEpochs, &
-!                loadWeightsBias, &
-!                haveValidation, &
-!                tryInitialArchitecture
-!        !tryFixedConfiguration
-!
-!        OPEN(1, FILE='./config/configuration.ini', STATUS='OLD', ACTION='READ')
-!            read(1, content)
-!        close(1)
-!
-!        config % nClasses = nClassesGeneralization
-!        config % nInputs = nInputs
-!        config % nOutputs = nOutputs
-!
-
         config % hiddenLayers = ceiling(solution(1))
         config % neuronsLayer(1) = ceiling(solution(2))
         config % neuronsLayer(2) = ceiling(solution(3))
         config % activationFunction = ceiling(solution(4))
         config % alpha = solution(5)
         config % eta = solution(6)
-!        print*, solution(1), solution(2), solution(3), solution(4), solution(5), solution(6)
-!        print*, config % hiddenLayers
-!        print*, config % neuronsLayer(1)
-!        print*, config % neuronsLayer(2)
-!        print*, config % activationFunction
-!        print*, config % alpha
-!        print*, config % eta
-!
-!        print*, 'Entrou no annTraining'
-!        print*, config % nInputs, config % neuronsLayer(1)
-!        print*, config % neuronsLayer(1)
 
         ! Allocating space for config
         !PARA PRIMEIRA CAMADA: ALOCANDO VARIAVEL
@@ -146,8 +104,12 @@ CONTAINS
         allocate(ys(config % nOutputs))
 
         !Allocating space for error variables
-        allocate(error(config % nOutputs, config % nClasses))
-        allocate(errorClass(config % nClasses))
+        allocate(errorTrain(config % nOutputs, config % nClasses))
+        allocate(errorClassTrain(config % nClasses))
+	if (config % haveValidation .eqv. .true.) then
+		allocate(errorValid(config % nOutputs, config % nClassesValidation))
+	        allocate(errorClassValid(config % nClassesValidation))
+	endif
         
         !Allocating space for delta variables
         !PARA PRIMEIRA CAMADA: ALOCANDO VARIAVEL
@@ -174,31 +136,27 @@ CONTAINS
         allocate(deltaWeightOutput(config % neuronsLayer(config % hiddenLayers), config % nOutputs))
         allocate(deltaWeightOutputLast(config % neuronsLayer(config % hiddenLayers), config % nOutputs))
 
-!        print*, 'Alocou muita memoria'
-
         deltaWeightOutput = 0
         deltaWeightHiddenLayer1 = 0
         deltaWeightHiddenLayer2 = 0
         deltaBiasOutput = 0
         deltaBiasHiddenLayer1 = 0
         deltaBiasHiddenLayer2 = 0
-!        print*, 'Passou pelos deltas'
+
         !Allocating space for gradient variables
         allocate(gradientHiddenLayer1(config % neuronsLayer(1)))
-!        print*, 'allocate(gradientHiddenLayer1(config % neuronsLayer(1)))'
+
         if (config % hiddenLayers == 2) then
             allocate(gradientHiddenLayer2(config % neuronsLayer(2)))
-            ! print*, 'allocate(gradientHiddenLayer2(config % neuronsLayer(2)))'
-!        else
-!            allocate(gradientHiddenLayer2(1))
-            ! print*, 'allocate(gradientHiddenLayer2(1))'
         end if
+
         allocate(gradientOutput(config % nOutputs))
 
-        ! print*, 'Alocou ainda mais memoria'
         gradientOutput = 0
         gradientHiddenLayer1 = 0
-        gradientHiddenLayer2 = 0
+	if (config % hiddenLayers == 2) then
+        	gradientHiddenLayer2 = 0
+	endif
         neuralNetworkTraining = 0
         
         !--------------------------------------------------------------------!
@@ -348,10 +306,8 @@ CONTAINS
                 yh1 = activation(vh1, config % activationFunction)
                 if (config % hiddenLayers == 1) then
                     vs = matmul(yh1, config % ws) - config % bs
-                end if
-
-                ! ACTIVATING HIDDEN LAYER 2
-                if (config % hiddenLayers == 2) then
+                
+		else
                     vh2 = matmul(yh1, config % wh2) - config % bh2
                     yh2 = activation(vh2, config % activationFunction)
                     vs = matmul(yh2, config % ws) - config % bs
@@ -359,11 +315,11 @@ CONTAINS
 
                 ! ACTIVATING OUTPUT
                 ys = activation(vs, config % activationFunction)
-                error(:, i) = config % y(:, i) - ys
+                errorTrain(:, i) = config % y(:, i) - ys
 
                 !CALCULO PADRAO DO ERRO
-                errorClass(i) = sum(error(:, i), dim = 1)
-                errorClass(i) = 0.5d0 * (errorClass(i)**2.d0)
+                errorClassTrain(i) = sum(errorTrain(:, i), dim = 1)
+                errorClassTrain(i) = 0.5d0 * (errorClassTrain(i)**2.d0)
 
                 !-------------------------------------------------------------------------!
                 !                        BACKPROPAGATION
@@ -371,13 +327,14 @@ CONTAINS
                 !TRAINING OUTPUT LAYER
                 do j = 1, config % nOutputs
                     dOutput = derivate(vs(j), ys(j), config % activationFunction)
-                    gradientOutput(j) = error(j, i) * dOutput
+                    gradientOutput(j) = errorTrain(j, i) * dOutput
 
                     if (config % hiddenLayers == 1) then
                         deltaWeightOutput(:, j) = config % eta * gradientOutput(j) * yh1
                     else
                         deltaWeightOutput(:, j) = config % eta * gradientOutput(j) * yh2
                     endif
+
                     deltaBiasOutput(j) = dfloat(-1) * config % eta * gradientOutput(j)
 
                     config % ws(:, j) = config % ws(:, j) &
@@ -393,12 +350,11 @@ CONTAINS
                 if (config % hiddenLayers == 2) then
                     do j = 1, config % neuronsLayer(2)
                         dOutput = derivate(vh2(j), yh2(j), config % activationFunction)
-			            aux = 0.d0
-                        if (config % hiddenLayers == 1) then
-                            DO k = 1, config % nOutputs
-                                aux = aux + (gradientOutput(k) * config % ws(j, k))
-                            enddo
-                        end if
+			aux = 0.d0
+                        
+			DO k = 1, config % nOutputs
+                        	aux = aux + (gradientOutput(k) * config % ws(j, k))
+                        enddo
 
                         gradientHiddenLayer2(j) = dOutput * aux
                         deltaWeightHiddenLayer2(:, j) = config % eta * gradientHiddenLayer2(j) * yh1
@@ -417,7 +373,9 @@ CONTAINS
 
                 ! TRAINING HIDDEN LAYER 1
                 DO j = 1, config % neuronsLayer(1)
+                    dOutput = derivate(vh1(j), yh1(j), config % activationFunction)
 	            aux = 0.d0
+
                     if (config % hiddenLayers == 1) then
                         do k = 1, config % nOutputs
                             aux = aux + (gradientOutput(k) * config % ws(j, k))
@@ -428,7 +386,6 @@ CONTAINS
                         enddo
                     endif
 
-                    dOutput = derivate(vh1(j), yh1(j), config % activationFunction)
 
                     gradientHiddenLayer1(j) = dOutput * aux
 
@@ -445,25 +402,20 @@ CONTAINS
                 ENDDO
             ENDDO
 
-            config % MeanSquaredError = sum(errorClass) / dfloat(config % nClasses)
-            ! print*, 'config % MeanSquaredError', config % MeanSquaredError
+            config % MeanSquaredErrorTrain = sum(errorClassTrain) / dfloat(config % nClasses)
 
             !***********************************************************************
-            ! VALIDATION
+            ! CROSS VALIDATION
             !***********************************************************************
             if (config % haveValidation .eqv. .true.) then
                 do i = 1, config % nClassesValidation
                     ! ACTIVATING HIDDEN LAYER 1
-!                    vh1 = matmul(config % x(:, i), config % wh1) - config % bh1
                     vh1 = matmul(config % x_valid(:, i), config % wh1) - config % bh1
                     yh1 = activation(vh1, config % activationFunction)
 
                     if (config % hiddenLayers == 1) then
                         vs = matmul(yh1, config % ws) - config % bs
-                    end if
-
-                    ! ACTIVATING HIDDEN LAYER 2
-                    if (config % hiddenLayers == 2) then
+                    else
                         vh2 = matmul(yh1, config % wh2) - config % bh2
                         yh2 = activation(vh2, config % activationFunction)
                         vs = matmul(yh2, config % ws) - config % bs
@@ -472,21 +424,14 @@ CONTAINS
                     ! ACTIVATING OUTPUT
                     ys = activation(vs, config % activationFunction)
 
-                    error(:, i) = config % y_valid(:, i) - ys
+                    errorValid(:, i) = config % y_valid(:, i) - ys
 
-                    errorClass(i) = sum(error(:, i), dim = 1)
-                    errorClass(i) = 0.5d0 * (errorClass(i)**2.d0)
+                    errorClassValid(i) = sum(errorValid(:, i), dim = 1)
+                    errorClassValid(i) = 0.5d0 * (errorClassValid(i)**2.d0)
                 end do
 
-                config % MeanSquaredErrorValidation = sum(errorClass) / dfloat(config % nClassesValidation)
+                config % MeanSquaredErrorValidation = sum(errorClassValid) / dfloat(config % nClassesValidation)
             end if
-
-            !if (epoch >= 100) then
-            !    epoch = 1
-            !    config % eta = config % eta * 0.99
-            !else
-            !    epoch = epoch + 1
-            !endif
         ENDDO
 
         ! Objective Function (Carvalho,2011)
@@ -495,16 +440,28 @@ CONTAINS
             !& + 1e+6 * p1 * exp(dfloat(config % neuronsLayer(2))) &
             !& + p2 * dfloat(config % nEpochs) &
 
-!        IF (config % haveValidation .eqv. .true.) THEN
+! 	 ABAIXO EXISTEM 3 FUNCOES OBJETIVOS QUE DEVEM SER COMPARADAS
+!        PRIMEIRA: USANDO ERRO DA VALIDACAO CRUZADA
+!        SEGUNDA: USANDO APENAS O ERRO QUADRATICO DO TREINAMENTO
+!        TERCEIRA: USANDO O ERRO DE GENERALIZACAO
+
+!        IF (config % haveValidation .eqv. .true.) THEN   
+
+! PRIMEIRA FUNCAO OBJETIVO
 !            neuralNetworkTraining = penaltyObj &
-!                & * ((alphaObj * config % MeanSquaredError + betaObj * config % MeanSquaredErrorValidation) &
+!                & * ((alphaObj * config % MeanSquaredErrorValidation + betaObj * config % MeanSquaredErrorValidation) &
 !                & / (alphaObj + betaObj))
 !        ELSE
+
+! SEGUNDA FUNCAO OBJETIVO
 !            neuralNetworkTraining = penaltyObj * config % MeanSquaredError
 !        ENDIF
-        mse = neuralNetwork(config) ! generalizacao do Haroldo
+
+! TERCEIRA FUNCAO OBJETIVO
+
+        meanSquaredErrorGen = neuralNetwork(config) ! funcao objetivo do Haroldo
         neuralNetworkTraining = penaltyObj &
-                & * ((alphaObj * config % MeanSquaredError + betaObj * mse) &
+                & * ((alphaObj * config % MeanSquaredErrorTrain + betaObj * meanSquaredErrorGen) &
                 & / (alphaObj + betaObj))
 
         ! Store configuration if objFunction is best
@@ -531,14 +488,6 @@ CONTAINS
 
             OPEN(12, FILE = './output/ann' // trim(str1) // '_' // trim(str0) // '.out')
 
-!            write(12, '(A)', advance = 'no') 'Objective Function (MPCA): '
-!            write(12, '(ES14.6E2)') st % bestObjectiveFunction
-!            write(12, '(A)', advance = 'no') 'Activation Function: '
-!     	    write(12, '(I3)') config % activationFunction
-!     	    write(12, '(A)', advance = 'no') 'Hidden Layers: '
-!            write(12, '(I3)') config % hiddenLayers
-!            write(12, '(A)', advance = 'no') 'Neurons First Layer: '
-!            write(12, '(I3)') config % neuronsLayer(1)
             write(12, '(A)') 'Objective Function (MPCA): '
             write(12, '(ES14.6E2)') st % bestObjectiveFunction
             write(12, '(A)') 'Activation Function: '
@@ -547,6 +496,7 @@ CONTAINS
             write(12, '(I3)') config % hiddenLayers
             write(12, '(A)') 'Neurons First Layer: '
             write(12, '(I3)') config % neuronsLayer(1)
+
             if (config % hiddenLayers == 2) then
                 write(12, '(A)') 'Neurons Second Layer: '
                 write(12, '(I3)') config % neuronsLayer(2)
@@ -555,6 +505,7 @@ CONTAINS
             write(12, '(A)') 'wh1'
             fString = '(   F11.5)'
             write(fString(2:4), '(I3)') config % neuronsLayer(1)
+
             DO i = 1, config % nInputs
                 write(12, fString) (config % wh1(i, k), k = 1, config % neuronsLayer(1))
             ENDDO
@@ -604,7 +555,7 @@ CONTAINS
             end select
 
             write(12, '(A)', advance = 'no') 'MeanSquaredError: '
-            write(12, '(ES14.6E2)') config % MeanSquaredError
+            write(12, '(ES14.6E2)') config % MeanSquaredErrorTrain
 
             if (config % haveValidation .eqv. .true.) then
                 WRITE(12, '(A)', advance = 'no') 'MeanSquaredError - validation: '
@@ -622,14 +573,21 @@ CONTAINS
 
         neuralNetworkTraining = st % bestObjectiveFunction
 
-        deallocate(error)
-        deallocate(errorClass)
+        deallocate(errorTrain)
+        deallocate(errorClassTrain)
+	if (config % haveValidation .eqv. .true.) then
+        	deallocate(errorValid)
+        	deallocate(errorClassValid)
+	endif
+
         deallocate(vh1)
         deallocate(yh1)
+
         if (config % hiddenLayers == 2) then
             deallocate(vh2)
             deallocate(yh2)
         end if
+
         deallocate(vs)
         deallocate(ys)
 
@@ -637,6 +595,7 @@ CONTAINS
         deallocate(config % bs)
         deallocate(config % wh1)
         deallocate(config % ws)
+
         if (config % hiddenLayers == 2) then
             deallocate(config % bh2)
             deallocate(config % wh2)

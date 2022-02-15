@@ -24,12 +24,6 @@ $(BUILDDIR)/annTraining.o \
 $(BUILDDIR)/mpcaFunctions.o \
 $(BUILDDIR)/mpca.o
 
-# Arquivos objeto do annTest
-SRCMLP := $(BUILDDIR)/foul.o \
-$(BUILDDIR)/newTypes.o \
-$(BUILDDIR)/annGeneralization.o \
-$(BUILDDIR)/main_generalization.o
-
 # Arquivos objeto do annActivation
 SRCACTIVATION := $(BUILDDIR)/foul.o \
 $(BUILDDIR)/newTypes.o \
@@ -49,14 +43,10 @@ all: 	$(BUILDDIR)/foul.o \
 	$(BUILDDIR)/main_generalization.o \
 	$(BUILDDIR)/main_activation.o \
 	annMPCA \
-	annTest \
 	annActivation
 
 annMPCA:
 	$(FC) $(FFLAGSOPT) -o annMPCA $(SRCMPCA)
-
-annTest:
-	$(FC) $(FFLAGSOPT) -o annTest $(SRCMLP)
 
 annActivation:
 	$(FC) $(FFLAGSOPT) -o annActivation $(SRCACTIVATION)

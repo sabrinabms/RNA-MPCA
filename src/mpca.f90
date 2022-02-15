@@ -21,9 +21,8 @@ PROGRAM MPCA
     ! VARIABLES DEFINITION
     !**********************
     integer :: iSeed, contD, contP, iCycleBlackboard, iError
-    integer :: nSeed, un, istat, it, nDimensions, paramRNA, i, j
+    integer :: nSeed, un, istat, it, nDimensions, i, j
     integer, allocatable, DIMENSION(:) :: vSeed, vSeed2
-    REAL (kind = 8), allocatable, DIMENSION(:) :: minB, maxB
     REAL (kind = 8), allocatable, DIMENSION(:) :: realSolution
     real :: harvest, rRandom
     CHARACTER(len = 50) :: string, str0, str1, fString, str
@@ -32,9 +31,6 @@ PROGRAM MPCA
     logical :: tryInitialArchitecture = .false.
     logical :: tryFixedConfiguration
     integer :: tmp_unit
-
-    PARAMETER (paramRNA = 17)
-    DOUBLE PRECISION, DIMENSION(paramRNA) :: parametros
 
     TYPE (Particle), allocatable, DIMENSION(:) :: oldParticle
     TYPE (Particle), allocatable, DIMENSION(:) :: newParticle
@@ -202,13 +198,9 @@ PROGRAM MPCA
     end if
 
     !Allocating space for dynamic variables
-    allocate(minB(op % nDimensions))
-    allocate(maxB(op % nDimensions))
     allocate(oldParticle(op % nParticlesProcessor))
     allocate(newParticle(op % nParticlesProcessor))
     allocate(bestParticle(op % nParticlesProcessor))
-    allocate(st % minB(op % nDimensions))
-    allocate(st % maxB(op % nDimensions))
     DO contP = 1, op % nParticlesProcessor
         allocate(oldParticle(contP) % solution(op % nDimensions))
         allocate(newParticle(contP) % solution(op % nDimensions))
@@ -469,8 +461,6 @@ PROGRAM MPCA
 
     deallocate(oldParticle)
     deallocate(newParticle)
-    deallocate(minB)
-    deallocate(maxB)
     deallocate(bestParticle)
     deallocate(realSolution)
     deallocate(config % x)
