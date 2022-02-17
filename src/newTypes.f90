@@ -14,23 +14,16 @@ TYPE :: OptionsMPCA
     INTEGER :: nProcessors
     INTEGER :: iProcessor
     INTEGER :: iExperiment
-    INTEGER :: cycleOpposition
     INTEGER :: nParticlesProcessor
     INTEGER (kind = 8) :: iterPerturbation
     INTEGER (kind = 8) :: maxNFE
-    INTEGER (kind = 8) :: hookeMax
     REAL (kind = 8), DIMENSION(6) :: lowerBound
     REAL (kind = 8), DIMENSION(6) :: upperBound
     REAL (kind = 8) :: lo_small
     REAL (kind = 8) :: up_small
     REAL (kind = 8) :: fmin
     REAL (kind = 8) :: emin
-    REAL (kind = 8) :: Jr
-    REAL (kind = 8) :: epsH
     REAL (kind = 8) :: rho
-    CHARACTER*16 :: functionName
-    CHARACTER*16 :: typeOpposition
-    LOGICAL :: isOppositionEnabled
     LOGICAL :: verbose
 
 END TYPE OptionsMPCA

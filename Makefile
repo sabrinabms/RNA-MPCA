@@ -19,6 +19,7 @@ SRCMPCA := $(BUILDDIR)/foul.o \
 $(BUILDDIR)/uniformR8.o \
 $(BUILDDIR)/newTypes.o \
 $(BUILDDIR)/normalR8.o \
+$(BUILDDIR)/rnaFunctions.o \
 $(BUILDDIR)/annGeneralization.o \
 $(BUILDDIR)/annTraining.o \
 $(BUILDDIR)/mpcaFunctions.o \
@@ -35,6 +36,7 @@ all: 	$(BUILDDIR)/foul.o \
 	$(BUILDDIR)/newTypes.o \
 	$(BUILDDIR)/uniformR8.o \
 	$(BUILDDIR)/normalR8.o \
+	$(BUILDDIR)/rnaFunctions.o \
 	$(BUILDDIR)/annGeneralization.o \
 	$(BUILDDIR)/annTraining.o \
 	$(BUILDDIR)/mpcaFunctions.o \

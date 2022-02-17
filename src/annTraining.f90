@@ -8,6 +8,7 @@
 MODULE annTraining
     use newTypes
     use foul
+    use rnaFunctions
     use annGeneralization !alteracao para a funcao objetivo do Haroldo
 
 
@@ -124,11 +125,6 @@ CONTAINS
             allocate(deltaBiasHiddenLayer2Last(config % neuronsLayer(2)))
             allocate(deltaWeightHiddenLayer2(config % neuronsLayer(1), config % neuronsLayer(2)))
             allocate(deltaWeightHiddenLayer2Last(config % neuronsLayer(1), config % neuronsLayer(2)))
-!        else
-!            allocate(deltaBiasHiddenLayer2(1))
-!            allocate(deltaBiasHiddenLayer2Last(1))
-!            allocate(deltaWeightHiddenLayer2(1,1))
-!            allocate(deltaWeightHiddenLayer2Last(1,1))
         end if
 
         allocate(deltaBiasOutput(config % nOutputs))
@@ -138,10 +134,14 @@ CONTAINS
 
         deltaWeightOutput = 0
         deltaWeightHiddenLayer1 = 0
-        deltaWeightHiddenLayer2 = 0
+
+        if (config % hiddenLayers == 2) then
+	        deltaWeightHiddenLayer2 = 0
+	        deltaBiasHiddenLayer2 = 0
+	endif
+
         deltaBiasOutput = 0
         deltaBiasHiddenLayer1 = 0
-        deltaBiasHiddenLayer2 = 0
 
         !Allocating space for gradient variables
         allocate(gradientHiddenLayer1(config % neuronsLayer(1)))
@@ -154,9 +154,11 @@ CONTAINS
 
         gradientOutput = 0
         gradientHiddenLayer1 = 0
+
 	if (config % hiddenLayers == 2) then
         	gradientHiddenLayer2 = 0
 	endif
+
         neuralNetworkTraining = 0
         
         !--------------------------------------------------------------------!
@@ -294,10 +296,12 @@ CONTAINS
         DO WHILE (epoch .LT. config % nEpochs)
             deltaWeightOutputLast = deltaWeightOutput
             deltaWeightHiddenLayer1Last = deltaWeightHiddenLayer1
-            deltaWeightHiddenLayer2Last = deltaWeightHiddenLayer2
-            deltaBiasOutputLast = deltaBiasOutput
+	    if (config % hiddenLayers == 2) then
+            	deltaWeightHiddenLayer2Last = deltaWeightHiddenLayer2
+                deltaBiasHiddenLayer2Last = deltaBiasHiddenLayer2
+            endif
+	    deltaBiasOutputLast = deltaBiasOutput
             deltaBiasHiddenLayer1Last = deltaBiasHiddenLayer1
-            deltaBiasHiddenLayer2Last = deltaBiasHiddenLayer2
             epoch = epoch + 1
 
             DO i = 1, config % nClasses
@@ -459,7 +463,7 @@ CONTAINS
 
 ! TERCEIRA FUNCAO OBJETIVO
 
-        meanSquaredErrorGen = neuralNetwork(config) ! funcao objetivo do Haroldo
+        meanSquaredErrorGen = neuralNetwork(config) ! funcao objetivo do Haroldo, aqui é chamado: annGeneralization.f90
         neuralNetworkTraining = penaltyObj &
                 & * ((alphaObj * config % MeanSquaredErrorTrain + betaObj * meanSquaredErrorGen) &
                 & / (alphaObj + betaObj))
@@ -602,50 +606,22 @@ CONTAINS
         end if
 
         deallocate(deltaBiasHiddenLayer1, deltaBiasHiddenLayer1Last)
-        deallocate(deltaBiasHiddenLayer2, deltaBiasHiddenLayer2Last)
-        deallocate(deltaBiasOutput, deltaBiasOutputLast)
+
+        if (config % hiddenLayers == 2) then
+	        deallocate(deltaBiasHiddenLayer2, deltaBiasHiddenLayer2Last)
+	        deallocate(deltaWeightHiddenLayer2, deltaWeightHiddenLayer2Last)
+                deallocate(gradientHiddenLayer2)
+	endif
+
+	deallocate(deltaBiasOutput, deltaBiasOutputLast)
         deallocate(deltaWeightHiddenLayer1, deltaWeightHiddenLayer1Last)
-        deallocate(deltaWeightHiddenLayer2, deltaWeightHiddenLayer2Last)
         deallocate(deltaWeightOutput, deltaWeightOutputLast)
         deallocate(gradientHiddenLayer1)
-        deallocate(gradientHiddenLayer2)
+
         deallocate(gradientOutput)
 
     END FUNCTION neuralNetworkTraining
 
-    real(kind = 8) elemental function activation(v, afunction) result(y)
-        implicit none
-
-        real (kind = 8), intent(in) :: v
-        integer, intent(in) :: afunction
-
-        real (kind = 8), parameter :: a = 1
-
-        select case(afunction)
-        case (1) !LOGISTIC
-            y = 1.d0/(1.d0 + exp(-a * v))
-        case (2) !TANGENT
-            y = (1.d0 - exp(-v))/(1.d0 + exp(-v))
-        case (3) !GAUSS
-            y = exp(-v)
-        end select
-    end function activation
-
-    real(kind = 8) elemental function derivate(v, y, afunction) result(d)
-        implicit none
-        real (kind = 8), intent(in) :: v
-        real (kind = 8), intent(in) :: y
-        integer, intent(in) :: afunction
-        real (kind = 8), parameter :: a = 1
-
-        select case(afunction)
-        case (1)!LOGISTICA: e^-x / (1+e^-x)^2
-            d = ((a * exp(-a * v))/((1.d0 + exp(-a * v))**2.d0))
-        case (2)!TANGENTE: 2e^-x / (1+e^-x)^2
-            d = (2 * exp(-v)) / ((1 + exp(-v))**2)
-        case (3)!GAUSS
-            d = -y/a
-        end select
-    end function derivate
+ 
 
 END MODULE annTraining

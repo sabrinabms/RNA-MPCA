@@ -1,10 +1,9 @@
 !***************************************************************!
-! MPCA functions						                        !
+! MPCA functions						!
 !***************************************************************!
 ! Desenvolvido por: Eduardo Favero Pacheco da Luz (CAP/INPE)	!
-! Modificado por: Reynier Hernández Torres (CAP/INPE)		    !
-! Baseado no PCA por Wagner F. Sacco				            !
-! Atualizacao: 03-Nov-2014					                    !
+! Modificado por: Reynier Hernández Torres (CAP/INPE)		!
+! Baseado no PCA por Wagner F. Sacco				!
 !***************************************************************!
 MODULE mpcaFunctions
 
@@ -278,8 +277,6 @@ CONTAINS
             print*,' Melhor particula: ', bo % fitness
             print*,' '
 
-!            call copyFileBest(op, iBest)
-
         ELSE
             DO i = 1, nDimensions
                 send(i) = bo % solution(i)
@@ -385,142 +382,7 @@ CONTAINS
         return
     end function best_nearby
 
-    !*****************************************************************
-    function hooke(nvars, startpt, endpt, rho, eps, nfemax, f, lb, ub)
-        implicit none
-
-        integer ( kind = 4) nvars
-
-        real ( kind = 8) delta(nvars)
-        real ( kind = 8) endpt(nvars)
-        real ( kind = 8) eps
-        real ( kind = 8), external :: f
-        real ( kind = 8) fbefore
-        integer ( kind = 8) funevals
-        integer ( kind = 8) hooke
-        integer ( kind = 4) i
-        integer ( kind = 8) nfemax
-        integer ( kind = 4) iters
-        integer ( kind = 4) j
-        integer ( kind = 4) keep
-        real ( kind = 8) newf
-        real ( kind = 8) newx(nvars)
-        real ( kind = 8) rho
-        real ( kind = 8) startpt(nvars)
-        real ( kind = 8) lb(nvars)
-        real ( kind = 8) ub(nvars)
-        real ( kind = 8) steplength
-        real ( kind = 8) tmp
-        logical, parameter :: verbose = .false.
-        real ( kind = 8) xbefore(nvars)
-
-        newx(1:nvars) = startpt(1:nvars)
-        xbefore(1:nvars) = startpt(1:nvars)
-
-        do i = 1, nvars
-            if (startpt(i) == 0.0D+00) then
-                delta(i) = rho
-            else
-                delta(i) = rho * abs(startpt(i))
-            end if
-        end do
-
-        funevals = 0
-        steplength = rho
-        iters = 0
-        fbefore = f(newx)
-        funevals = funevals + 1
-        newf = fbefore
-
-        do while(funevals < nfemax .and. eps < steplength)
-
-            iters = iters + 1
-
-            if (verbose) then
-
-                write ( *, '(a)') ' '
-                write ( *, '(a,i8,a,ES12.2E4)') &
-                '  FUNEVALS, = ', funevals, '  F(X) = ', fbefore
-
-                !do j = 1, nvars
-                !    write ( *, '(2x,i8,2x,g14.6)') j, xbefore(j)
-                !end do
-            end if
-            !
-            !  Find best new point, one coordinate at a time.
-            !
-            newx(1:nvars) = xbefore(1:nvars)
-
-            newf = best_nearby(delta, newx, fbefore, nvars, f, funevals, lb, ub)
-            !
-            !  If we made some improvements, pursue that direction.
-            !
-            keep = 1
-
-            do while (newf < fbefore .and. keep == 1)
-                do i = 1, nvars
-                    !
-                    !  Arrange the sign of DELTA.
-                    !
-                    if (newx(i) <= xbefore(i)) then
-                        delta(i) = -abs(delta(i))
-                    else
-                        delta(i) = abs(delta(i))
-                    end if
-                    !
-                    !  Now, move further in this direction.
-                    !
-                    tmp = xbefore(i)
-                    xbefore(i) = newx(i)
-                    newx(i) = newx(i) + newx(i) - tmp
-
-                    if (newx(i) .lt. lb(i)) then
-                        newx(i) = lb(i)
-                    elseif (newx(i) .gt. ub(i)) then
-                        newx(i) = ub(i)
-                    end if
-
-                end do
-
-                fbefore = newf
-                newf = best_nearby(delta, newx, fbefore, nvars, f, funevals, lb, ub)
-                !
-                !  If the further (optimistic) move was bad...
-                !
-                if (fbefore <= newf) then
-                    exit
-                end if
-                !
-                !  Make sure that the differences between the new and the old points
-                !  are due to actual displacements; beware of roundoff errors that
-                !  might cause NEWF < FBEFORE.
-                !
-                keep = 0
-
-                do i = 1, nvars
-                    if (0.5D+00 * abs(delta(i)) < &
-                        abs(newx(i) - xbefore(i))) then
-                        keep = 1
-                        exit
-                    end if
-                end do
-
-            end do
-
-            if (eps <= steplength .and. fbefore <= newf) then
-                steplength = steplength * rho
-                delta(1:nvars) = delta(1:nvars) * rho
-            end if
-
-        end do
-
-        endpt(1:nvars) = xbefore(1:nvars)
-
-        hooke = funevals
-
-        return
-    end function hooke
-
+ 
     !*****************************************************************
     SUBROUTINE copyFileBest(op, st)
         implicit none

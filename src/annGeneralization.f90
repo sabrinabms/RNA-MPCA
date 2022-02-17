@@ -6,6 +6,7 @@
 !***************************************************************!
 MODULE annGeneralization
     USE newTypes
+    USE rnaFunctions
 
 CONTAINS
 
@@ -20,7 +21,7 @@ REAL(8) FUNCTION neuralNetwork(config)
     double precision, allocatable, dimension(:,:) :: x_gen
     double precision, allocatable, dimension(:,:) :: y_gen
     double precision, allocatable, dimension(:) :: vs
-    double precision, allocatable, dimension(:,:) :: ys
+    double precision, allocatable, dimension(:) :: ys
     real(8) :: eqm
     double precision, allocatable, dimension(:,:) :: error
     real (8), allocatable, dimension(:) :: errorClass
@@ -46,7 +47,8 @@ REAL(8) FUNCTION neuralNetwork(config)
     end if
 
     allocate(vs(config % nOutputs))
-    allocate(ys(config % nOutputs, config % nClassesGeneralization))
+    allocate(ys(config % nOutputs))
+    
 
     !------------------------------------------------------------!
     !LENDO OS PARAMETROS DO ARQUIVO DE ENTRADA
@@ -68,70 +70,39 @@ REAL(8) FUNCTION neuralNetwork(config)
     !----------------------------------------------------------------------!
 
     DO i = 1, config % nClassesGeneralization
-        ! ATIVACAO CAMADA OCULTA 1
-        vh1 = 0.d0
-        vh1 = matmul(x_gen(:, i), config % wh1)
-        vh1 = vh1 - config % bh1;
-        select case(config % activationFunction)
-        case (1) !LOGISTICA
-            yh1 = 1.d0/(1.d0 + DEXP(-a * vh1))
-        case (2) !TANGENTE
-            yh1 = (1.d0 - DEXP(-vh1))/(1.d0 + DEXP(-vh1))
-        case (3) !GAUSS
-            yh1 = DEXP(-vh1)
-        end select
+	! ACTIVATING HIDDEN LAYER 1
+	vh1 = matmul(x_gen(:, i), config % wh1) - config % bh1
+        yh1 = activation(vh1, config % activationFunction)
 
-        if (config % hiddenLayers == 2) then
-            ! ATIVACAO CAMADA OCULTA 2
-            vh2 = 0.d0
-            vh2 = matmul(yh1, config % wh2)
-            vh2 = vh2 - config % bh2;
-            select case(config % activationFunction)
-            case (1) !LOGISTICA
-                yh2 = 1.d0/(1.d0 + DEXP(-a * vh2))
-            case (2) !TANGENTE
-                yh2 = (1.d0 - DEXP(-vh2))/(1.d0 + DEXP(-vh2))
-            case (3) !GAUSS
-                yh2 = DEXP(-vh2)
-            end select
-        end if
 
-        ! ATIVACAO: CAMADA DE SAIDA
-        vs = 0.d0
         if (config % hiddenLayers == 1) then
-            vs = matmul(yh1, config % ws)
-        else if (config % hiddenLayers == 2) then
-            vs = matmul(yh2, config % ws)
+        	vs = matmul(yh1, config % ws) - config % bs
+        else
+        	vh2 = matmul(yh1, config % wh2) - config % bh2
+        	yh2 = activation(vh2, config % activationFunction)
+        	vs = matmul(yh2, config % ws) - config % bs
         end if
-        vs = vs - config % bs
 
-        select case(config % activationFunction)
-        case (1) !LOGISTICA
-            ys(:, i) = 1.d0/(1.d0 + DEXP(-a * vs(:)))
-        case (2) !TANGENTE
-            ys(:, i) = (1.d0 - DEXP(-vs(:)))/(1.d0 + DEXP(-vs(:)))
-        case (3) !GAUSS
-            ys(:, i) = DEXP(-vs(:))
-        end select
+	! ACTIVATING OUTPUT
+	ys = activation(vs, config % activationFunction)
 
         ! CALCULO ERRO GENERALIZACAO
-
-        error(:, i) = y_gen(:, i) - ys(:,i)
+        error(:, i) = y_gen(:, i) - ys
         errorClass(i) = sum(error(:, i), dim = 1)
         errorClass(i) = 0.5d0 * (errorClass(i)**2.d0)
+
     ENDDO
 
     eqm = sum(errorClass) / dfloat(config % nClassesGeneralization)
 
-
-!    write(*,*) "result_ys.out"
-    open(12, file = './output/result_generalization.out')
-    fString = '(   F11.5)'
-    write(fString(2:4), '(I3)') config % nOutputs
-    do i = 1, config % nOutputs
-        write(12, fString) (ys(i, j), j = 1, config % nClassesGeneralization)
-    end do
-    close(12)
+! TRECHO COMENTADO PARA SER RESOLVIDO DEPOIS, NAO PODE SER APAGADO!!!!!
+!    open(12, file = './output/result_generalization.out')
+!    fString = '(   F11.5)'
+!    write(fString(2:4), '(I3)') config % nOutputs
+!    do i = 1, config % nOutputs
+!        write(12, fString) (ys(i, j), j = 1, config % nClassesGeneralization)
+!    end do
+!    close(12)
 
     neuralNetwork = eqm
 
@@ -150,5 +121,6 @@ REAL(8) FUNCTION neuralNetwork(config)
     deallocate(ys)
 
 END FUNCTION neuralNetwork
+
 
 END MODULE annGeneralization

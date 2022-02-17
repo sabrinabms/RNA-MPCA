@@ -112,12 +112,6 @@ PROGRAM MPCA
     REAL (kind = 8) :: lower_exploitation_mpca
     REAL (kind = 8) :: upper_exploitation_mpca
     INTEGER :: type_probability_mpca
-    CHARACTER*16 :: type_opposition
-    LOGICAL :: enable_opposition
-    REAL (kind = 8) :: jumping_rate_opposition
-    REAL (kind = 8) :: epsilon_hooke_jeeves
-    REAL (kind = 8) :: rho_hooke_jeeves
-    INTEGER (kind = 8) :: maximum_nfe_hooke_jeeves
     LOGICAL :: verbose
 
     NAMELIST /algorithm_configuration/ value_to_reach, &
@@ -128,12 +122,6 @@ PROGRAM MPCA
         lower_exploitation_mpca, &
         upper_exploitation_mpca, &
         type_probability_mpca, &
-        enable_opposition, &
-        type_opposition, &
-        jumping_rate_opposition,  &
-        epsilon_hooke_jeeves, &
-        rho_hooke_jeeves, &
-        maximum_nfe_hooke_jeeves, &
         verbose
 
     !******************
@@ -157,8 +145,6 @@ PROGRAM MPCA
     CLOSE(1)
 
     op % maxNFE = maximum_nfe_mpca
-    op % isOppositionEnabled = enable_opposition
-    op % typeOpposition = type_opposition
     op % typeProbability = type_probability_mpca
     op % iCycleBlackboard = cycle_blackboard_mpca
     op % nParticlesProcessor = particles_processor
@@ -166,10 +152,6 @@ PROGRAM MPCA
     op % lo_small = lower_exploitation_mpca
     op % up_small = upper_exploitation_mpca
     op % emin = value_to_reach
-    op % Jr = jumping_rate_opposition
-    op % epsH = epsilon_hooke_jeeves
-    op % rho = rho_hooke_jeeves
-    op % hookeMax = maximum_nfe_hooke_jeeves
     op % verbose = verbose
 
     !Output files
@@ -206,7 +188,6 @@ PROGRAM MPCA
         allocate(newParticle(contP) % solution(op % nDimensions))
         allocate(bestParticle(contP) % solution(op % nDimensions))
     END DO
-    allocate(realSolution(op % nDimensions))
 
     OPEN(1, FILE='./config/configuration.ini', STATUS='OLD', ACTION='READ')
     read(1, content)
@@ -237,13 +218,11 @@ PROGRAM MPCA
     op % upperBound(5) = upper_Alpha
     op % upperBound(6) = upper_Eta
 
-    ! print*, 'Leu o arquivo configuration.ini'
     !------------------------------------------------------------!
     !LENDO OS PARAMETROS DO ARQUIVO DE ENTRADA
     !------------------------------------------------------------!
     allocate(config % x(config % nInputs, config % nClasses))
     allocate(config % y(config % nOutputs, config % nClasses))
-    ! print*, 'Alocou memoria para x e y'
 
     fString = '(F8.5)'
     write(fString(2:7), '(I6)') config % nClasses
@@ -253,20 +232,16 @@ PROGRAM MPCA
         READ(2, *) (config % x(i, j), j = 1, config % nClasses)
     END DO
     CLOSE (2)
-    CLOSE (2)
-    ! print*, 'Leu arquivo de entrada: x'
 
     OPEN (1, file = './data/y.txt')
     DO I = 1, config % nOutputs
         READ(1, *) (config % y(i, j), j = 1, config % nClasses)
     END DO
     CLOSE (1)
-    ! print*, 'Leu arquivo de saida: y'
 
     if (config % haveValidation .eqv. .true.) then
         allocate(config % x_valid(config % nInputs, config % nClassesValidation))
         allocate(config % y_valid(config % nOutputs, config % nClassesValidation))
-        ! print*, 'Alocou memoria para x e y validaçao'
 
         write(fString(2:7), '(I6)') config % nClassesValidation
 
@@ -275,14 +250,13 @@ PROGRAM MPCA
             READ(1, *) (config % y_valid(i, j), j = 1, config % nClassesValidation)
         END DO
         CLOSE (1)
-        ! print*, 'Leu arquivo validacao: x'
 
         OPEN (2, file = './data/x_valid.txt')
         DO i = 1, config % nInputs
             READ(2, *) (config % x_valid(i, j), j = 1, config % nClassesValidation)
         END DO
         CLOSE (2)
-        ! print*, 'Leu arquivo validacao: y'
+
     end if
 
     ! RANDOM NUMBER CONFIGURATION
@@ -462,7 +436,6 @@ PROGRAM MPCA
     deallocate(oldParticle)
     deallocate(newParticle)
     deallocate(bestParticle)
-    deallocate(realSolution)
     deallocate(config % x)
     deallocate(config % y)
     if (config % haveValidation .eqv. .true.) then
