@@ -61,6 +61,7 @@ TYPE :: annConfig
     INTEGER (kind = 8) :: nEpochs
     integer :: loadWeightsBias
     LOGICAL :: haveValidation
+    LOGICAL :: tryInitialArchitecture
     REAL (kind = 8), ALLOCATABLE, DIMENSION(:,:) :: x, x_valid, x_gen
     REAL (kind = 8), ALLOCATABLE, DIMENSION(:,:) :: y, y_valid, y_gen
     REAL (kind = 8), ALLOCATABLE, DIMENSION(:,:) :: wh1

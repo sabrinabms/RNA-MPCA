@@ -411,8 +411,8 @@ CONTAINS
             WRITE (str1, '(I3)') op % iExperiment
         END IF
 
-        filename = './output/ann' // trim(str1) // '_' // trim(str0) // '.out'
-        command = 'cp ' // TRIM(filename) // ' ./output/ann' // trim(str1) // '.best'
+        filename = './output/ann_e' // trim(str1) // '_p' // trim(str0) // '.out'
+        command = 'cp ' // TRIM(filename) // ' ./output/ann_e' // trim(str1) // '.best'
         call system(TRIM(command))
 
     END SUBROUTINE copyFileBest

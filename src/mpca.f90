@@ -30,7 +30,6 @@ PROGRAM MPCA
     CHARACTER(len = 50) :: string, str0, str1, fString, str
     character(len = 100) :: filename
     character(len = 100) :: format_string
-    logical :: tryFixedConfiguration
     integer :: tmp_unit
 
     TYPE (Particle), allocatable, DIMENSION(:) :: oldParticle
