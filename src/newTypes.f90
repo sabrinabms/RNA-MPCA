@@ -36,6 +36,8 @@ TYPE :: StatusMPCA
     INTEGER (kind = 8) :: totalNFE
     INTEGER (kind = 8) :: iBest
     LOGICAL :: flag
+	REAL (kind = 8), ALLOCATABLE, DIMENSION(:) :: minB
+	REAL (kind = 8), ALLOCATABLE, DIMENSION(:) :: maxB
     REAL (kind = 8) :: bestObjectiveFunction
     LOGICAL :: fileUpdated
     logical :: doStop

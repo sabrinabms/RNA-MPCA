@@ -74,7 +74,6 @@ REAL(8) FUNCTION neuralNetwork(config)
 	vh1 = matmul(x_gen(:, i), config % wh1) - config % bh1
         yh1 = activation(vh1, config % activationFunction)
 
-
         if (config % hiddenLayers == 1) then
         	vs = matmul(yh1, config % ws) - config % bs
         else

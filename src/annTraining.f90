@@ -71,6 +71,7 @@ CONTAINS
 
         integer :: i
         integer :: j
+        integer :: jj
         integer :: k
         integer :: epoch
 
@@ -107,10 +108,10 @@ CONTAINS
         !Allocating space for error variables
         allocate(errorTrain(config % nOutputs, config % nClasses))
         allocate(errorClassTrain(config % nClasses))
-	if (config % haveValidation .eqv. .true.) then
-		allocate(errorValid(config % nOutputs, config % nClassesValidation))
+	    if (config % haveValidation .eqv. .true.) then
+		    allocate(errorValid(config % nOutputs, config % nClassesValidation))
 	        allocate(errorClassValid(config % nClassesValidation))
-	endif
+	    endif
         
         !Allocating space for delta variables
         !PARA PRIMEIRA CAMADA: ALOCANDO VARIAVEL
@@ -138,7 +139,7 @@ CONTAINS
         if (config % hiddenLayers == 2) then
 	        deltaWeightHiddenLayer2 = 0
 	        deltaBiasHiddenLayer2 = 0
-	endif
+	    endif
 
         deltaBiasOutput = 0
         deltaBiasHiddenLayer1 = 0
@@ -155,9 +156,9 @@ CONTAINS
         gradientOutput = 0
         gradientHiddenLayer1 = 0
 
-	if (config % hiddenLayers == 2) then
+	    if (config % hiddenLayers == 2) then
         	gradientHiddenLayer2 = 0
-	endif
+	    endif
 
         neuralNetworkTraining = 0
         
@@ -286,6 +287,7 @@ CONTAINS
         epoch = 0
         
         if (op % iProcessor == 0) then
+            ! achar(): returns the character located at position I in the ASCII collating sequence
             write(*,FMT="(A1,A,t25,I10,A,I10)",ADVANCE="NO") achar(13), &
                 & "NFE (in processor 0): ", &
                 & st % NFE, &
@@ -296,11 +298,13 @@ CONTAINS
         DO WHILE (epoch .LT. config % nEpochs)
             deltaWeightOutputLast = deltaWeightOutput
             deltaWeightHiddenLayer1Last = deltaWeightHiddenLayer1
-	    if (config % hiddenLayers == 2) then
+	        
+            if (config % hiddenLayers == 2) then
             	deltaWeightHiddenLayer2Last = deltaWeightHiddenLayer2
                 deltaBiasHiddenLayer2Last = deltaBiasHiddenLayer2
             endif
-	    deltaBiasOutputLast = deltaBiasOutput
+	        
+            deltaBiasOutputLast = deltaBiasOutput
             deltaBiasHiddenLayer1Last = deltaBiasHiddenLayer1
             epoch = epoch + 1
 
@@ -311,7 +315,7 @@ CONTAINS
                 if (config % hiddenLayers == 1) then
                     vs = matmul(yh1, config % ws) - config % bs
                 
-		else
+		        else
                     vh2 = matmul(yh1, config % wh2) - config % bh2
                     yh2 = activation(vh2, config % activationFunction)
                     vs = matmul(yh2, config % ws) - config % bs
@@ -354,23 +358,20 @@ CONTAINS
                 if (config % hiddenLayers == 2) then
                     do j = 1, config % neuronsLayer(2)
                         dOutput = derivate(vh2(j), yh2(j), config % activationFunction)
-			aux = 0.d0
-                        
-			DO k = 1, config % nOutputs
-                        	aux = aux + (gradientOutput(k) * config % ws(j, k))
+			            aux = 0.d0                      
+			            DO k = 1, config % nOutputs
+                            aux = aux + (gradientOutput(k) * config % ws(j, k))
                         enddo
-
-                        gradientHiddenLayer2(j) = dOutput * aux
+                        gradientHiddenLayer2(j) = aux * dOutput
                         deltaWeightHiddenLayer2(:, j) = config % eta * gradientHiddenLayer2(j) * yh1
                         deltaBiasHiddenLayer2(j) = dfloat(-1) * config % eta * gradientHiddenLayer2(j)
-
                         config % wh2(:, j) = config % wh2(:, j) &
-                            & + deltaWeightHiddenLayer2(:, j) &
-                            & + config % alpha * deltaWeightHiddenLayer2Last(:, j)
+                                & + deltaWeightHiddenLayer2(:, j) &
+                                & + config % alpha * deltaWeightHiddenLayer2Last(:, j)
 
                         config % bh2(j) = config % bh2(j) &
-                            & + deltaBiasHiddenLayer2(j) &
-                            & + config % alpha * deltaBiasHiddenLayer2Last(j)
+                                & + deltaBiasHiddenLayer2(j) &
+                                & + config % alpha * deltaBiasHiddenLayer2Last(j)
 
                     end do
                 end if
@@ -378,21 +379,20 @@ CONTAINS
                 ! TRAINING HIDDEN LAYER 1
                 DO j = 1, config % neuronsLayer(1)
                     dOutput = derivate(vh1(j), yh1(j), config % activationFunction)
-	            aux = 0.d0
-
+	                aux = 0.d0
                     if (config % hiddenLayers == 1) then
                         do k = 1, config % nOutputs
                             aux = aux + (gradientOutput(k) * config % ws(j, k))
                         enddo
                     else
-                        do k = 1, config % neuronsLayer(1)
-                            aux = aux + (gradientHiddenLayer2(k) * config % wh2(j, k))
+                        do jj = 1, config % neuronsLayer(2)
+                            do k = 1, config % nOutputs
+                                aux = aux + (gradientHiddenLayer2(jj) * config % wh2(jj, k))
+                            enddo
                         enddo
                     endif
 
-
-                    gradientHiddenLayer1(j) = dOutput * aux
-
+                    gradientHiddenLayer1(j) =  aux * dOutput
                     deltaWeightHiddenLayer1(:, j) = config % eta * gradientHiddenLayer1(j) * config % x(:, i)
                     deltaBiasHiddenLayer1(j) = dfloat(-1) * config % eta * gradientHiddenLayer1(j)
 
@@ -471,7 +471,6 @@ CONTAINS
         ! Store configuration if objFunction is best
         if (neuralNetworkTraining < st % bestObjectiveFunction) then
             
-            
             st % bestObjectiveFunction = neuralNetworkTraining
 
             IF (op % iProcessor < 9) THEN
@@ -490,7 +489,7 @@ CONTAINS
                 WRITE (str1, '(I3)') op % iExperiment
             END IF
 
-            OPEN(12, FILE = './output/ann' // trim(str1) // '_' // trim(str0) // '.out')
+            OPEN(12, FILE = './output/ann_e' // trim(str1) // '_p' // trim(str0) // '.out')
 
             write(12, '(A)') 'Objective Function (MPCA): '
             write(12, '(ES14.6E2)') st % bestObjectiveFunction

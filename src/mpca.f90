@@ -2,9 +2,10 @@
 ! MULTIPLE PARTICLE COLLISION ALGORITHM (MPCA)                  !
 !***************************************************************!
 ! Developed by: Eduardo Favero Pacheco da Luz (CAP/INPE)        !
-! Modified by: Reynier Hernandez Torres (CAP/INPE)              !
+! Modified by:  Sabrina Sambati                                 !    
+!               Juliana Anochi                                  ! 
+!               Reynier Hernandez Torres (CAP/INPE)             !
 ! Based on PCA (Wagner F. Sacco)                                !
-! Updated: 23-Apr-2015                                          !
 !***************************************************************!
 
 PROGRAM MPCA
@@ -23,12 +24,12 @@ PROGRAM MPCA
     integer :: iSeed, contD, contP, iCycleBlackboard, iError
     integer :: nSeed, un, istat, it, nDimensions, i, j
     integer, allocatable, DIMENSION(:) :: vSeed, vSeed2
+	REAL (kind = 8), allocatable, DIMENSION(:) :: minB, maxB
     REAL (kind = 8), allocatable, DIMENSION(:) :: realSolution
     real :: harvest, rRandom
     CHARACTER(len = 50) :: string, str0, str1, fString, str
     character(len = 100) :: filename
     character(len = 100) :: format_string
-    logical :: tryInitialArchitecture = .false.
     logical :: tryFixedConfiguration
     integer :: tmp_unit
 
@@ -50,6 +51,7 @@ PROGRAM MPCA
     INTEGER (kind = 8) :: nEpochs
     integer :: loadWeightsBias
     LOGICAL :: haveValidation
+    logical :: tryInitialArchitecture
     integer (kind = 8) :: lower_Hidden_Layers
     integer (kind = 8) :: lower_First_Hidden_Layer
     integer (kind = 8) :: lower_Second_Hidden_Layer
@@ -82,7 +84,6 @@ PROGRAM MPCA
          loadWeightsBias, &
          haveValidation, &
          tryInitialArchitecture
-!        tryFixedConfiguration
 
     NAMELIST /bounds/ lower_Hidden_Layers, &
         upper_Hidden_Layers, &
@@ -144,14 +145,14 @@ PROGRAM MPCA
     READ(1, algorithm_configuration)
     CLOSE(1)
 
-    op % maxNFE = maximum_nfe_mpca
-    op % typeProbability = type_probability_mpca
-    op % iCycleBlackboard = cycle_blackboard_mpca
+    op % emin = value_to_reach
     op % nParticlesProcessor = particles_processor
+    op % maxNFE = maximum_nfe_mpca
+    op % iCycleBlackboard = cycle_blackboard_mpca
     op % iterPerturbation = nfe_exploitation_mpca
     op % lo_small = lower_exploitation_mpca
     op % up_small = upper_exploitation_mpca
-    op % emin = value_to_reach
+    op % typeProbability = type_probability_mpca
     op % verbose = verbose
 
     !Output files
@@ -180,14 +181,21 @@ PROGRAM MPCA
     end if
 
     !Allocating space for dynamic variables
+	allocate(minB(op % nDimensions))
+	allocate(maxB(op % nDimensions))
     allocate(oldParticle(op % nParticlesProcessor))
     allocate(newParticle(op % nParticlesProcessor))
     allocate(bestParticle(op % nParticlesProcessor))
+	allocate(st % minB(op % nDimensions))
+	allocate(st % maxB(op % nDimensions))
+
     DO contP = 1, op % nParticlesProcessor
         allocate(oldParticle(contP) % solution(op % nDimensions))
         allocate(newParticle(contP) % solution(op % nDimensions))
         allocate(bestParticle(contP) % solution(op % nDimensions))
     END DO
+
+	allocate(realSolution(op % nDimensions))
 
     OPEN(1, FILE='./config/configuration.ini', STATUS='OLD', ACTION='READ')
     read(1, content)
@@ -205,6 +213,8 @@ PROGRAM MPCA
     config % nEpochs = nEpochs
     config % loadWeightsBias = loadWeightsBias
     config % haveValidation = haveValidation
+    config % tryInitialArchitecture = tryInitialArchitecture 
+
     op % lowerBound(1) = lower_Hidden_Layers
     op % lowerBound(2) = lower_First_Hidden_Layer
     op % lowerBound(3) = lower_Second_Hidden_Layer
@@ -263,12 +273,15 @@ PROGRAM MPCA
     CALL init_random_seed(op)
 
     st % NFE = 0
+    
+    st % higherNFE = 0
+    !st % it !estah sendo usado?
     st % lastUpdate = 0
     st % totalNFE = 0
     st % iBest = 0
-    st % higherNFE = 0
     st % flag = .false.
     st % bestObjectiveFunction = huge(0.D0)
+    ! st % fileUpdated ! estah sendo usado?
     st % doStop = .false.
     doStopMPCA = .false.
 
@@ -284,7 +297,7 @@ PROGRAM MPCA
     DO contP = 1, op % nParticlesProcessor
         ! print*, 'Entrou no loop : populacao inicial'
 
-        if (contP == 1 .and. tryInitialArchitecture .eqv. .true.) then
+        if (contP == 1 .and. config % tryInitialArchitecture .eqv. .true.) then
             oldParticle(contP) % solution(1) = initial_Hidden_Layers
             oldParticle(contP) % solution(2) = initial_First_Hidden_Layer
             oldParticle(contP) % solution(3) = initial_Second_Hidden_Layer
@@ -299,7 +312,6 @@ PROGRAM MPCA
                     & + op % lowerBound(contD)
             end do
         end if
-        exit
 
         oldParticle(contP) % fitness = neuralNetworkTraining(oldParticle(contP) % solution, op, st, config)
         st % NFE = st % NFE + 1
@@ -435,7 +447,10 @@ PROGRAM MPCA
 
     deallocate(oldParticle)
     deallocate(newParticle)
+	deallocate(minB)
+	deallocate(maxB)
     deallocate(bestParticle)
+	deallocate(realSolution)
     deallocate(config % x)
     deallocate(config % y)
     if (config % haveValidation .eqv. .true.) then
