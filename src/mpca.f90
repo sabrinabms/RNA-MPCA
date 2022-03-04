@@ -43,7 +43,7 @@ PROGRAM MPCA
     INTEGER (kind = 8) :: nClasses
     INTEGER (kind = 8) :: nClassesValidation
     INTEGER (kind = 8) :: nClassesGeneralization
-    INTEGER (kind = 8) :: nClassesActivation
+    INTEGER (kind = 8) :: nClassesTest
     INTEGER (kind = 8) :: nInputs
     INTEGER (kind = 8) :: nOutputs
     REAL (kind = 8) :: targetError
@@ -75,7 +75,7 @@ PROGRAM MPCA
     NAMELIST /content/ nClasses, &
          nClassesValidation, &
          nClassesGeneralization, &
-         nClassesActivation, &
+         nClassesTest, &
          nInputs, &
          nOutputs, &
          targetError, &
@@ -205,7 +205,7 @@ PROGRAM MPCA
     config % nClasses = nClasses
     config % nClassesValidation = nClassesValidation
     config % nClassesGeneralization = nClassesGeneralization
-    config % nClassesActivation = nClassesActivation
+    config % nClassesTest = nClassesTest
     config % nInputs = nInputs
     config % nOutputs = nOutputs
     config % targetError = targetError

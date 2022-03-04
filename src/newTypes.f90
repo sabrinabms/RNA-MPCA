@@ -47,7 +47,7 @@ TYPE :: annConfig
     integer :: nClasses
     integer :: nClassesValidation
     integer :: nClassesGeneralization
-    integer :: nClassesActivation
+    integer :: nClassesTest
     integer :: nInputs
     integer :: nOutputs
     integer :: hiddenLayers
