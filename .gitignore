@@ -42,3 +42,8 @@ annGeneration
 *.bck
 *_bck
 *-checkpoint.ipynb
+
+# zipados
+*.tar 
+*.gz
+*.tar.gz

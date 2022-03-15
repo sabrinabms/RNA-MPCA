@@ -7,7 +7,7 @@ TYPE :: Particle
     REAL (kind = 8), ALLOCATABLE, DIMENSION(:) :: solution
 END TYPE Particle
 
-TYPE :: OptionsMPCA
+TYPE :: optionsMPCA
     INTEGER :: nDimensions
     INTEGER :: typeProbability
     INTEGER :: iCycleBlackboard
@@ -26,9 +26,9 @@ TYPE :: OptionsMPCA
     REAL (kind = 8) :: rho
     LOGICAL :: verbose
 
-END TYPE OptionsMPCA
+END TYPE optionsMPCA
     
-TYPE :: StatusMPCA
+TYPE :: statusMPCA
     INTEGER (kind = 8) :: NFE
     INTEGER (kind = 8) :: it
     INTEGER (kind = 8) :: higherNFE
@@ -41,7 +41,7 @@ TYPE :: StatusMPCA
     REAL (kind = 8) :: bestObjectiveFunction
     LOGICAL :: fileUpdated
     logical :: doStop
-END TYPE StatusMPCA
+END TYPE statusMPCA
 
 TYPE :: annConfig
     integer :: nClasses
