@@ -62,8 +62,8 @@ TYPE :: annConfig
     integer :: loadWeightsBias
     LOGICAL :: haveValidation
     LOGICAL :: tryInitialArchitecture
-    REAL (kind = 8), ALLOCATABLE, DIMENSION(:,:) :: x, x_valid, x_gen
-    REAL (kind = 8), ALLOCATABLE, DIMENSION(:,:) :: y, y_valid, y_gen
+    REAL (kind = 8), ALLOCATABLE, DIMENSION(:,:) :: x, x_valid, x_gen, x_test
+    REAL (kind = 8), ALLOCATABLE, DIMENSION(:,:) :: y, y_valid, y_gen, y_test
     REAL (kind = 8), ALLOCATABLE, DIMENSION(:,:) :: wh1
     REAL (kind = 8), ALLOCATABLE, DIMENSION(:,:) :: wh2
     REAL (kind = 8), ALLOCATABLE, DIMENSION(:,:) :: ws

@@ -25,12 +25,12 @@ $(BUILDDIR)/annTraining.o \
 $(BUILDDIR)/mpcaFunctions.o \
 $(BUILDDIR)/mpca.o
 
-# Arquivos objeto do annActivation
-SRCACTIVATION := $(BUILDDIR)/foul.o \
+# Arquivos objeto do annTest
+SRCTEST := $(BUILDDIR)/foul.o \
+$(BUILDDIR)/rnaFunctions.o \
 $(BUILDDIR)/newTypes.o \
-$(BUILDDIR)/annActivation.o \
-$(BUILDDIR)/main_activation.o
-
+$(BUILDDIR)/annTest.o \
+$(BUILDDIR)/main_test.o
 
 all: 	$(BUILDDIR)/foul.o \
 	$(BUILDDIR)/newTypes.o \
@@ -41,24 +41,24 @@ all: 	$(BUILDDIR)/foul.o \
 	$(BUILDDIR)/annTraining.o \
 	$(BUILDDIR)/mpcaFunctions.o \
 	$(BUILDDIR)/mpca.o \
-	$(BUILDDIR)/annActivation.o \
+	$(BUILDDIR)/annTest.o \
 	$(BUILDDIR)/main_generalization.o \
-	$(BUILDDIR)/main_activation.o \
+	$(BUILDDIR)/main_test.o \
 	annMPCA \
-	annActivation
+	annTest
 
 annMPCA:
 	$(FC) $(FFLAGSOPT) -o annMPCA $(SRCMPCA)
 
-annActivation:
-	$(FC) $(FFLAGSOPT) -o annActivation $(SRCACTIVATION)
+annTest:
+	$(FC) $(FFLAGSOPT) -o annTest $(SRCTEST)
 
 $(BUILDDIR)/%.o: $(VPATH)/%.f90
 	@mkdir -p $(@D)
 	$(FC) $(FFLAGS) $< -o $@
 
 clean:	removemod
-	rm -rf *.*~ Makefile~ build/*.o *.mod annActivation annTest annMPCA
+	rm -rf *.*~ Makefile~ build/*.o *.mod annTest annTest annMPCA
 
 removemod:
 	rm -f build/*.o *.mod
