@@ -132,8 +132,8 @@ CONTAINS
     !----------------------------------------------------------------------!
     ! INICIO DA REDE: FEEDFORWARD
     !----------------------------------------------------------------------!
-    open(11, file = './output/result_test.out')
-    open(12, file = './output/errors_test.out')
+    open(11, file = './output/result_test.out', access = 'append')
+    open(12, file = './output/errors_test.out', access = 'append')
 !    fString = '(   F11.5)'
 !    write(fString(2:4), '(I3)') config % nOutputs
 
@@ -154,6 +154,7 @@ CONTAINS
 
         !ACTIVATING OUTPUT
         ys = activation(vs, config % activationFunction)
+        print*, ys
         write(11, *) ys !(ys(i, j), j = 1, config % nOutputs)
 
         !CALCULO ERRO TESTE

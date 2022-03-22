@@ -42,7 +42,6 @@ all: 	$(BUILDDIR)/foul.o \
 	$(BUILDDIR)/mpcaFunctions.o \
 	$(BUILDDIR)/mpca.o \
 	$(BUILDDIR)/annTest.o \
-	$(BUILDDIR)/main_generalization.o \
 	$(BUILDDIR)/main_test.o \
 	annMPCA \
 	annTest

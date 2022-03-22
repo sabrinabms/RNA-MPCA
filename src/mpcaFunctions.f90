@@ -12,58 +12,68 @@ MODULE mpcaFunctions
 
 CONTAINS
 
+    !********************************************************************
+    !********************************************************************
     SUBROUTINE Perturbation(oldParticle, newParticle, bestParticle, op, st, config)
 
         IMPLICIT NONE
-        INTEGER :: contD
-        REAL (kind = 8) :: alea
-        TYPE (Particle), INTENT(INOUT) :: oldParticle
-        TYPE (Particle), INTENT(INOUT) :: newParticle
-        TYPE (Particle), INTENT(INOUT) :: bestParticle
-        TYPE (OptionsMPCA), INTENT(IN) :: op
-        TYPE (StatusMPCA), INTENT(INOUT) :: st
+
+        integer :: contD
+        real (kind = 8) :: alea
+        type (Particle), intent(inout) :: oldParticle
+        type (Particle), intent(inout) :: newParticle
+        type (Particle), intent(inout) :: bestParticle
+        type (OptionsMPCA), intent(IN) :: op
+        type (StatusMPCA), intent(inout) :: st
         type (annConfig), intent(in):: config
 
-        DO contD = 1, op % nDimensions
+        do contD = 1, op % nDimensions
+
             CALL RANDOM_NUMBER(alea)
+
             newParticle % solution(contD) = oldParticle % solution(contD) &
-            +((op % upperBound(contD) - oldParticle % solution(contD)) * alea) &
-            -((oldParticle % solution(contD) - op % lowerBound(contD))*(1.0D0 - alea))
+                +((op % upperBound(contD) - oldParticle % solution(contD)) * alea) &
+                -((oldParticle % solution(contD) - op % lowerBound(contD))*(1.0D0 - alea))
 
-            IF (newParticle % solution(contD) .GT. op % upperBound(contD)) THEN
+            if (newParticle % solution(contD) .GT. op % upperBound(contD)) then
                 newParticle % solution(contD) = op % upperBound(contD)
-            END IF
+            endif
 
-            IF (newParticle % solution(contD) .LT. op % lowerBound(contD)) THEN
+            if (newParticle % solution(contD) .LT. op % lowerBound(contD)) then
                 newParticle % solution(contD) = op % lowerBound(contD)
-            END IF
-        END DO
+            endif
+        enddo
 
         newParticle % fitness = neuralNetworkTraining(newParticle % solution, op, st, config)
+
         st % NFE = st % NFE + 1
 
-        IF (newParticle % fitness .LT. bestParticle % fitness) THEN
+        if (newParticle % fitness .LT. bestParticle % fitness) then
             bestParticle = newParticle
-        END IF
+        endif
 
     END SUBROUTINE
 
     !********************************************************************
     !********************************************************************
     SUBROUTINE Exploration(oldParticle, newParticle, bestParticle, op, st, config)
-        IMPLICIT NONE
-        INTEGER :: l2, nDimensions
-        INTEGER (kind = 8) :: iteracoes
-        TYPE (Particle), INTENT(INOUT) :: oldParticle, newParticle, bestParticle
 
-        TYPE (OptionsMPCA), INTENT(IN) :: op
-        TYPE (StatusMPCA), INTENT(INOUT) :: st
+        IMPLICIT NONE
+
+        integer :: l2, nDimensions
+        integer (kind = 8) :: iteracoes
+        TYPE (Particle), intent(inout) :: oldParticle, newParticle, bestParticle
+        TYPE (OptionsMPCA), intent(IN) :: op
+        TYPE (StatusMPCA), intent(inout) :: st
         type (annConfig), intent(in) :: config
 
         DO l2 = 1, op % iterPerturbation
+        
             CALL Small_Perturbation(oldParticle, newParticle, bestParticle, op, st, config)
 
             newParticle % fitness = neuralNetworkTraining(newParticle % solution, op, st, config)
+
+            st % NFE = st % NFE + 1
 
             IF (newParticle % fitness .LT. oldParticle % fitness) THEN
                 oldParticle = newParticle
@@ -73,30 +83,34 @@ CONTAINS
                 bestParticle = newParticle
             END IF
 
-            if ((bestParticle % fitness < op % emin) .and. (st % flag .eqv. .false.)) then
-                st % flag = .true.
-            end if
+            ! if ((bestParticle % fitness < op % emin) .and. (st % flag .eqv. .false.)) then
+            !     st % flag = .true.
+            ! end if
 
             if (st % NFE >= op % maxNFE / op % nProcessors) then
                 st % doStop = .true.
                 return
             end if
+
         END DO
+
     END SUBROUTINE
 
     !********************************************************************
     !********************************************************************
     SUBROUTINE Small_Perturbation(oldParticle, newParticle, bestParticle, op, st, config)
+
         IMPLICIT NONE
-        INTEGER :: contD
+
+        integer :: contD
         REAL (kind = 8), ALLOCATABLE, DIMENSION(:) :: inferior
         REAL (kind = 8), ALLOCATABLE, DIMENSION(:) :: superior
         REAL (kind = 8), ALLOCATABLE, DIMENSION(:) :: alea
         REAL (kind = 8) :: alea2
-        TYPE (Particle), INTENT(INOUT) :: oldParticle, newParticle
-        TYPE (Particle), INTENT(INOUT) :: bestParticle
-        TYPE (OptionsMPCA), INTENT(IN) :: op
-        TYPE (StatusMPCA), INTENT(INOUT) :: st
+        TYPE (Particle), intent(inout) :: oldParticle, newParticle
+        TYPE (Particle), intent(inout) :: bestParticle
+        TYPE (OptionsMPCA), intent(IN) :: op
+        TYPE (StatusMPCA), intent(inout) :: st
         type (annConfig), intent(in) :: config
 
         ALLOCATE(inferior(op % nDimensions))
@@ -104,14 +118,15 @@ CONTAINS
         ALLOCATE(alea(3 * op % nDimensions))
 
         CALL RANDOM_NUMBER(alea)
+        
         DO contD = 1, op % nDimensions
             superior(contD) = (DBLE(alea(contD)) &
-            *(op % up_small - 1.0D0) + 1.0D0) &
-            *oldParticle % solution(contD)
+                            *(op % up_small - 1.0D0) + 1.0D0) &
+                            *oldParticle % solution(contD)
 
             inferior(contD) = (DBLE(alea(contD + op % nDimensions)) &
-            *(1.0D0 - op % lo_small) + op % lo_small) &
-            *oldParticle % solution(contD)
+                            *(1.0D0 - op % lo_small) + op % lo_small) &
+                            *oldParticle % solution(contD)
 
             IF (superior(contD) .GT. op % upperBound(contD)) THEN
                 superior(contD) = op % upperBound(contD)
@@ -145,13 +160,15 @@ CONTAINS
     !********************************************************************
     !********************************************************************
     SUBROUTINE Scattering(oldParticle, newParticle, bestParticle, op, st, config)
+
         IMPLICIT NONE
-        INTEGER :: l2
+
+        integer :: l2
         REAL (kind = 8) :: p_scat
         REAL (kind = 8) :: alea
-        TYPE (Particle), INTENT(INOUT) :: oldParticle, newParticle, bestParticle
-        TYPE (OptionsMPCA), INTENT(IN) :: op
-        TYPE (StatusMPCA), INTENT(INOUT) :: st
+        TYPE (Particle), intent(inout) :: oldParticle, newParticle, bestParticle
+        TYPE (OptionsMPCA), intent(IN) :: op
+        TYPE (StatusMPCA), intent(inout) :: st
         type (annConfig), intent(in):: config
         REAL  (kind = 8), PARAMETER :: pi = 3.1415927
 
@@ -165,6 +182,7 @@ CONTAINS
         END SELECT
 
         CALL RANDOM_NUMBER(alea)
+        
         IF (alea < p_scat) THEN
             DO l2 = 1, op % nDimensions
                 CALL RANDOM_NUMBER(alea)
@@ -179,9 +197,9 @@ CONTAINS
                 bestParticle = oldParticle
             END IF
 
-            if ((bestParticle % fitness < op % emin) .and. (st % flag .eqv. .false.)) then
-                st % flag = .true.
-            end if
+            ! if ((bestParticle % fitness < op % emin) .and. (st % flag .eqv. .false.)) then
+            !     st % flag = .true.
+            ! end if
         END IF
 
         CALL Exploration(oldParticle, newParticle, bestParticle, op, st, config)
@@ -193,38 +211,42 @@ CONTAINS
     !********************************************************************
     !********************************************************************
     SUBROUTINE blackboard(bo, NFE, higherNFE, totalNFE, doStop, doStopMPCA, op, st)
+
         USE newtypes
 
-        implicit none
+        IMPLICIT NONE
+
         INCLUDE 'mpif.h'
 
-        INTEGER :: i, j, ierr, status(MPI_STATUS_SIZE), stopCount
-        INTEGER (kind=8), INTENT(in) :: NFE
-        INTEGER (kind=8), INTENT(inout) :: higherNFE, totalNFE
-        INTEGER :: world_rank, world_size, nDimensions
+        integer :: i, j, ierr, status(MPI_STATUS_SIZE), stopCount
+        integer (kind=8), intent(in) :: NFE
+        integer (kind=8), intent(inout) :: higherNFE, totalNFE
+        integer :: world_rank, world_size, nDimensions
         logical, intent(inout) :: doStop, doStopMPCA
-
         type (Particle), intent(inout) :: bo
-        TYPE(OptionsMPCA), intent(in) :: op
-        TYPE (StatusMPCA), INTENT(INOUT) :: st
+        type (OptionsMPCA), intent(in) :: op
+        type (StatusMPCA), intent(inout) :: st
         real (kind = 8), allocatable, dimension(:) :: send
 
         world_rank = op % iProcessor !IDENTIFICADOR DO PROCESSADOR
         world_size = op % nProcessors !NUMERO TOTAL DE PROCESSADORES
         nDimensions = op % nDimensions
 
-        if (world_size == 1) then
-!            call copyFileBest(op, st)
-            higherNFE = NFE
-            totalNFE = NFE
-            doStopMPCA = doStop
-            return
-        end if
+!         if (world_size == 1) then
+! !            call copyFileBest(op, st)
+!             higherNFE = NFE
+!             totalNFE = NFE
+!             doStopMPCA = doStop
+!             return
 
-        ALLOCATE(send(nDimensions + 4))
+!         endif
+
+        allocate(send(nDimensions + 4))
 
         stopCount = 0
-        IF (world_rank .EQ. 0) THEN
+
+        if (world_rank .EQ. 0) then
+
             higherNFE = NFE
             totalNFE = NFE
 
@@ -236,9 +258,9 @@ CONTAINS
             DO i = 1, world_size - 1
                 CALL MPI_Recv(send, nDimensions + 4, MPI_REAL8, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE, ierr)
 
-                IF (INT(send(nDimensions + 2)) .GT. higherNFE) THEN
+                if (INT(send(nDimensions + 2)) .GT. higherNFE) then
                     higherNFE = INT8(send(nDimensions + 2))
-                END IF
+                endif
 
                 totalNFE = totalNFE + INT8(send(nDimensions + 2))
 
@@ -319,69 +341,7 @@ CONTAINS
     !********************************************************************
     !********************************************************************
     !********************************************************************
-    function best_nearby(delta, point, prevbest, nvars, f, funevals, lb, ub)
-
-        implicit none
-
-        integer ( kind = 4) nvars
-
-        real ( kind = 8) best_nearby
-        real ( kind = 8) delta(nvars)
-        real ( kind = 8), external :: f
-        real ( kind = 8) ftmp
-        integer ( kind = 8) funevals
-        integer ( kind = 8) i
-        real ( kind = 8) minf
-        real ( kind = 8) point(nvars)
-        real ( kind = 8) prevbest
-        real ( kind = 8) z(nvars)
-        real ( kind = 8) lb(nvars)
-        real ( kind = 8) ub(nvars)
-
-        minf = prevbest
-        z(1:nvars) = point(1:nvars)
-
-        do i = 1, nvars
-            z(i) = point(i) + delta(i)
-
-            if (z(i) .lt. lb(i)) then
-                z(i) = lb(i)
-            elseif (z(i) .gt. ub(i)) then
-                z(i) = ub(i)
-            end if
-
-            ftmp = f(z, nvars)
-            funevals = funevals + 1
-
-            if (ftmp < minf) then
-                minf = ftmp
-            else
-                delta(i) = -delta(i)
-                z(i) = point(i) + delta(i)
-
-                if (z(i) .lt. lb(i)) then
-                    z(i) = lb(i)
-                elseif (z(i) .gt. ub(i)) then
-                    z(i) = ub(i)
-                end if
-
-                ftmp = f(z, nvars)
-                funevals = funevals + 1
-
-                if (ftmp < minf) then
-                    minf = ftmp
-                else
-                    z(i) = point(i)
-                end if
-            end if
-        end do
-
-        point(1:nvars) = z(1:nvars)
-        best_nearby = minf
-
-        return
-    end function best_nearby
-
+    
  
     !*****************************************************************
     SUBROUTINE copyFileBest(op, st)
@@ -389,7 +349,7 @@ CONTAINS
 
         CHARACTER (100) :: str0, str1, filename, command
         TYPE(OptionsMPCA), intent(in) :: op
-        TYPE (StatusMPCA), INTENT(INOUT) :: st
+        TYPE (StatusMPCA), intent(inout) :: st
 
         print*,' '
         print*,'(c) Processador com a melhor particula:', st % iBest
@@ -416,5 +376,31 @@ CONTAINS
         call system(TRIM(command))
 
     END SUBROUTINE copyFileBest
+
+    !********************************************************************
+    !********************************************************************
+    !********************************************************************
+    !********************************************************************
+    !********************************************************************
+    
+
+    SUBROUTINE init_random_seed(op)
+        implicit none
+
+        integer :: i, n, clock
+        integer, dimension(:), ALLOCATABLE :: seed
+        type (OptionsMPCA), intent(in) :: op
+
+        CALL RANDOM_SEED(size = n)
+        ALLOCATE(seed(n))
+
+        CALL SYSTEM_CLOCK(COUNT=clock)
+
+        seed = clock + 37 * (/ (i - 1, i = 1, n) /)
+        seed = seed * (op % iProcessor + 1)
+        CALL RANDOM_SEED(PUT = seed)
+
+        DEALLOCATE(seed)
+    END SUBROUTINE
 
 END MODULE mpcaFunctions
