@@ -20,10 +20,10 @@ CONTAINS
 
         integer :: contD
         real (kind = 8) :: alea
-        type (Particle), intent(inout) :: oldParticle
+        type (Particle), intent(in) :: oldParticle
         type (Particle), intent(inout) :: newParticle
         type (Particle), intent(inout) :: bestParticle
-        type (OptionsMPCA), intent(IN) :: op
+        type (OptionsMPCA), intent(in) :: op
         type (StatusMPCA), intent(inout) :: st
         type (annConfig), intent(in):: config
 
@@ -31,9 +31,9 @@ CONTAINS
 
             CALL RANDOM_NUMBER(alea)
 
-            newParticle % solution(contD) = oldParticle % solution(contD) &
-                +((op % upperBound(contD) - oldParticle % solution(contD)) * alea) &
-                -((oldParticle % solution(contD) - op % lowerBound(contD))*(1.0D0 - alea))
+            newParticle % solution(contD) = oldParticle % solution(contD) + &
+            ((op % upperBound(contD) - oldParticle % solution(contD)) * alea) - &
+            ((oldParticle % solution(contD) - op % lowerBound(contD)) * (1.0D0 - alea))
 
             if (newParticle % solution(contD) .GT. op % upperBound(contD)) then
                 newParticle % solution(contD) = op % upperBound(contD)
@@ -42,6 +42,7 @@ CONTAINS
             if (newParticle % solution(contD) .LT. op % lowerBound(contD)) then
                 newParticle % solution(contD) = op % lowerBound(contD)
             endif
+
         enddo
 
         newParticle % fitness = neuralNetworkTraining(newParticle % solution, op, st, config)
@@ -60,20 +61,22 @@ CONTAINS
 
         IMPLICIT NONE
 
-        integer :: l2, nDimensions
-        integer (kind = 8) :: iteracoes
-        TYPE (Particle), intent(inout) :: oldParticle, newParticle, bestParticle
-        TYPE (OptionsMPCA), intent(IN) :: op
+        integer :: l2
+        TYPE (Particle), intent(inout) :: oldParticle 
+        TYPE (Particle), intent(inout) :: newParticle 
+        TYPE (Particle), intent(inout) :: bestParticle
+        TYPE (OptionsMPCA), intent(in) :: op
         TYPE (StatusMPCA), intent(inout) :: st
         type (annConfig), intent(in) :: config
 
         DO l2 = 1, op % iterPerturbation
         
-            CALL Small_Perturbation(oldParticle, newParticle, bestParticle, op, st, config)
+            CALL Small_Perturbation(oldParticle, newParticle, op, st, config)
+            ! CALL Small_Perturbation(oldParticle, newParticle, bestParticle, op, st, config)
 
-            newParticle % fitness = neuralNetworkTraining(newParticle % solution, op, st, config)
+            ! newParticle % fitness = neuralNetworkTraining(newParticle % solution, op, st, config)
 
-            st % NFE = st % NFE + 1
+            ! st % NFE = st % NFE + 1
 
             IF (newParticle % fitness .LT. oldParticle % fitness) THEN
                 oldParticle = newParticle
@@ -87,10 +90,10 @@ CONTAINS
             !     st % flag = .true.
             ! end if
 
-            if (st % NFE >= op % maxNFE / op % nProcessors) then
-                st % doStop = .true.
-                return
-            end if
+            ! if (st % NFE >= op % maxNFE / op % nProcessors) then
+            !     st % doStop = .true.
+            !     return
+            ! end if
 
         END DO
 
@@ -98,7 +101,8 @@ CONTAINS
 
     !********************************************************************
     !********************************************************************
-    SUBROUTINE Small_Perturbation(oldParticle, newParticle, bestParticle, op, st, config)
+    SUBROUTINE Small_Perturbation(oldParticle, newParticle, op, st, config)
+    ! SUBROUTINE Small_Perturbation(oldParticle, newParticle, bestParticle, op, st, config)
 
         IMPLICIT NONE
 
@@ -106,10 +110,11 @@ CONTAINS
         REAL (kind = 8), ALLOCATABLE, DIMENSION(:) :: inferior
         REAL (kind = 8), ALLOCATABLE, DIMENSION(:) :: superior
         REAL (kind = 8), ALLOCATABLE, DIMENSION(:) :: alea
-        REAL (kind = 8) :: alea2
-        TYPE (Particle), intent(inout) :: oldParticle, newParticle
-        TYPE (Particle), intent(inout) :: bestParticle
-        TYPE (OptionsMPCA), intent(IN) :: op
+        ! REAL (kind = 8) :: alea
+        TYPE (Particle), intent(in) :: oldParticle
+        TYPE (Particle), intent(inout) :: newParticle
+        ! TYPE (Particle), intent(inout) :: bestParticle
+        TYPE (OptionsMPCA), intent(in) :: op
         TYPE (StatusMPCA), intent(inout) :: st
         type (annConfig), intent(in) :: config
 
@@ -136,9 +141,9 @@ CONTAINS
                 inferior(contD) = op % lowerBound(contD)
             END IF
 
-            newParticle % solution(contD) = oldParticle % solution(contD) &
-            +((superior(contD) - oldParticle % solution(contD)) * DBLE(alea(contD + 2 * op % nDimensions))) &
-            -((oldParticle % solution(contD) - inferior(contD))*(1.0D0 - DBLE(alea(contD + 2 * op % nDimensions))))
+            newParticle % solution(contD) = oldParticle % solution(contD) + &
+            ((superior(contD) - oldParticle % solution(contD)) * DBLE(alea(contD + 2 * op % nDimensions))) - &
+            ((oldParticle % solution(contD) - inferior(contD)) * (1.0D0 - DBLE(alea(contD + 2 * op % nDimensions))))
 
             IF (newParticle % solution(contD) .GT. op % upperBound(contD)) THEN
                 newParticle % solution(contD) = op % upperBound(contD)
@@ -166,8 +171,10 @@ CONTAINS
         integer :: l2
         REAL (kind = 8) :: p_scat
         REAL (kind = 8) :: alea
-        TYPE (Particle), intent(inout) :: oldParticle, newParticle, bestParticle
-        TYPE (OptionsMPCA), intent(IN) :: op
+        TYPE (Particle), intent(inout) :: oldParticle
+        TYPE (Particle), intent(inout) :: newParticle
+        TYPE (Particle), intent(inout) :: bestParticle
+        TYPE (OptionsMPCA), intent(in) :: op
         TYPE (StatusMPCA), intent(inout) :: st
         type (annConfig), intent(in):: config
         REAL  (kind = 8), PARAMETER :: pi = 3.1415927
@@ -186,8 +193,17 @@ CONTAINS
         IF (alea < p_scat) THEN
             DO l2 = 1, op % nDimensions
                 CALL RANDOM_NUMBER(alea)
-                oldParticle % solution(l2) = (alea * (op % upperBound(l2) - op % lowerBound(l2))) &
-                +op % lowerBound(l2)
+                oldParticle % solution(l2) = (alea * (op % upperBound(l2) - op % lowerBound(l2))) + &
+                op % lowerBound(l2)
+
+                IF (oldParticle % solution(l2) .GT. op % upperBound(l2)) THEN
+                    oldParticle % solution(l2) = op % upperBound(l2)
+                END IF
+
+                IF (oldParticle % solution(l2) .LT. op % lowerBound(l2)) THEN
+                    oldParticle % solution(l2) = op % lowerBound(l2)
+                END IF
+
             END DO
 
             oldParticle % fitness = neuralNetworkTraining(oldParticle % solution, op, st, config)
@@ -273,7 +289,7 @@ CONTAINS
                 ENDIF
 
                 if (send(nDimensions + 3) > 0) then
-                    stopCount = stopCount + 1;
+                    stopCount = stopCount + 1
                 end if
             ENDDO
 
