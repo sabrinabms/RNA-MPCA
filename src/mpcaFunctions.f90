@@ -49,9 +49,9 @@ CONTAINS
 
         st % NFE = st % NFE + 1
 
-        if (newParticle % fitness .LT. bestParticle % fitness) then
-            bestParticle = newParticle
-        endif
+        ! if (newParticle % fitness .LT. bestParticle % fitness) then
+        !     bestParticle = newParticle
+        ! endif
 
     END SUBROUTINE
 
@@ -358,8 +358,6 @@ CONTAINS
     !********************************************************************
     !********************************************************************
     !********************************************************************
-    
- 
     !*****************************************************************
     SUBROUTINE copyFileBest(op, st)
         implicit none

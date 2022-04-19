@@ -25,7 +25,6 @@ TYPE :: optionsMPCA
     REAL (kind = 8) :: emin
     REAL (kind = 8) :: rho
     LOGICAL :: verbose
-
 END TYPE optionsMPCA
     
 TYPE :: statusMPCA
