@@ -6,6 +6,7 @@ PROGRAM MAIN_TEST
     implicit none
 
     type(annConfig) :: config
+    ! type (annConfig), allocatable, dimension(:) :: config
     character(len = 50) :: str2, str1
     character (len =100) :: fstr, DUMMY, CMD
     character (len =30) :: fileNameBest, fileNameBestofBest
@@ -50,6 +51,8 @@ PROGRAM MAIN_TEST
     print*,'****************************************************************'
     print*, '                   RNA Test'
     print*,'****************************************************************'
+
+    ! allocate(config(op % nParticlesProcessor))
 
     open(10, FILE='./config/configuration.ini', STATUS='OLD', ACTION='READ')
     read(10, content)

@@ -23,16 +23,15 @@ PROGRAM MPCA
     !**********************
     integer :: contD, contP, iError
     integer :: ndimensions, i, j
-	real (kind = 8), allocatable, dimension(:) :: minB, maxB
     real :: harvest
-    character(len = 50) :: stringArg, fString, str, str0, str1
+    character(len = 50) :: stringArg, str, str0, str1
 
     type (Particle), allocatable, dimension(:) :: oldParticle
     type (Particle), allocatable, dimension(:) :: newParticle
     type (Particle), allocatable, dimension(:) :: bestParticle
-    type (Particle) :: bestParticleProcessor
-    type (optionsMPCA) :: op
+    type (Particle), allocatable, dimension(:) :: bestParticleProcessor
     type (annConfig) :: config
+    type (optionsMPCA) :: op
     type (statusMPCA) :: st
 
     integer (kind = 8) :: nClasses
@@ -140,7 +139,7 @@ PROGRAM MPCA
     op % ndimensions = 6
 
     OPEN(1, FILE='./config/configuration.ini', status='OLD', action='READ')
-    read(1, algorithm_configuration)
+        read(1, algorithm_configuration)
     CLOSE(1)
 
     op % emin = value_to_reach
@@ -168,38 +167,32 @@ PROGRAM MPCA
 
     if (op % iProcessor == 0) then
 
-        if (op % verbose .eqv. .true.) then
-            str = integer_to_string(op % iExperiment, 3)
-            CALL start_section2('Experiment ' // trim(str), 'normal')
-        endif
-
         if (op % iExperiment == 1) then
             OPEN(UNIT = 2, FILE = './output/final.out', ACCESS = 'APPEND')
-            write(2,*)'F.OBJ, N.CAM, N.NEUR C1, N.NEUR C2, F.ATIV, ALFA, ETA'
+                write(2,*)'F.OBJ, N.CAM, N.NEUR C1, N.NEUR C2, F.ATIV, ALFA, ETA'
             CLOSE(2)
         endif
 
     endif
 
     !Allocating space for dynamic variables
-	allocate(minB(op % ndimensions))
-	allocate(maxB(op % ndimensions))
     allocate(oldParticle(op % nParticlesProcessor))
     allocate(newParticle(op % nParticlesProcessor))
     allocate(bestParticle(op % nParticlesProcessor))
-	allocate(st % minB(op % ndimensions))
-	allocate(st % maxB(op % ndimensions))
+    allocate(bestParticleProcessor(op % nParticlesProcessor))
+    ! allocate(config(op % nParticlesProcessor))
 
     do contP = 1, op % nParticlesProcessor
         allocate(oldParticle(contP) % solution(op % ndimensions))
         allocate(newParticle(contP) % solution(op % ndimensions))
         allocate(bestParticle(contP) % solution(op % ndimensions))
+        allocate(bestParticleProcessor(contP) % solution(op % ndimensions))
     enddo
 
     OPEN(1, file='./config/configuration.ini', status='old', action='read')
-    read(1, content)
-    read(1, bounds)
-    read(1, initial)
+        read(1, content)
+        read(1, bounds)
+        read(1, initial)
     CLOSE(1)
 
     config % nClasses = nClasses
@@ -233,39 +226,32 @@ PROGRAM MPCA
     allocate(config % x(config % nInputs, config % nClasses))
     allocate(config % y(config % nOutputs, config % nClasses))
 
-    ! fString = '(F8.5)'
-    ! write(fString(2:7), '(I6)') config % nClasses
-    ! print*, config % nClasses
-    ! STOP 'Programa interrompido!!!'
-
     OPEN (2, file = './data/x.txt')
-    do i = 1, config % nInputs
-        read(2, *) (config % x(i, j), j = 1, config % nClasses)
-    enddo
+        do i = 1, config % nInputs
+            read(2, *) (config % x(i, j), j = 1, config % nClasses)
+        enddo
     CLOSE (2)
 
     OPEN (2, file = './data/y.txt')
-    do I = 1, config % nOutputs
-        read(2, *) (config % y(i, j), j = 1, config % nClasses)
-    enddo
+        do I = 1, config % nOutputs
+            read(2, *) (config % y(i, j), j = 1, config % nClasses)
+        enddo
     CLOSE (2)
 
     if (config % haveValidation .eqv. .true.) then
         allocate(config % x_valid(config % nInputs, config % nClassesValidation))
         allocate(config % y_valid(config % nOutputs, config % nClassesValidation))
 
-        ! write(fString(2:7), '(I6)') config % nClassesValidation
-
         OPEN (1, file = './data/y_valid.txt')
-        do i = 1, config % nOutputs
-            read(1, *) (config % y_valid(i, j), j = 1, config % nClassesValidation)
-        enddo
+            do i = 1, config % nOutputs
+                read(1, *) (config % y_valid(i, j), j = 1, config % nClassesValidation)
+            enddo
         CLOSE (1)
 
         OPEN (2, file = './data/x_valid.txt')
-        do i = 1, config % nInputs
-            read(2, *) (config % x_valid(i, j), j = 1, config % nClassesValidation)
-        enddo
+            do i = 1, config % nInputs
+                read(2, *) (config % x_valid(i, j), j = 1, config % nClassesValidation)
+            enddo
         CLOSE (2)
 
     endif
@@ -285,9 +271,9 @@ PROGRAM MPCA
 
     do contP = 1, op % nParticlesProcessor
         bestParticle(contP) % fitness = huge(0.D0)
+        bestParticleProcessor(contP) % fitness = huge(0.D0)
     enddo
 
-    bestParticleProcessor % fitness = huge(0.D0)
 
     !*****************************
     ! CREATING INITIAL POPULATION
@@ -324,8 +310,8 @@ PROGRAM MPCA
 
     do contP = 1, op % nParticlesProcessor
 
-        if (bestParticle(contP) % fitness < bestParticleProcessor % fitness) then
-            bestParticleProcessor = bestParticle(contP)
+        if (bestParticle(contP) % fitness < bestParticleProcessor(contP) % fitness) then
+            bestParticleProcessor(contP) = bestParticle(contP)
         endif
 
     enddo
@@ -370,17 +356,17 @@ PROGRAM MPCA
 
             do contP = 1, op % nParticlesProcessor
 
-                if (bestParticle(contP) % fitness < bestParticleProcessor % fitness) then
-                    bestParticleProcessor = bestParticle(contP)
+                if (bestParticle(contP) % fitness < bestParticleProcessor(contP) % fitness) then
+                    bestParticleProcessor(contP) = bestParticle(contP)
                 endif
 
             enddo
 
-            CALL blackboard(bestParticleProcessor, st % NFE, st % higherNFE, st % totalNFE, st % doStop, &
+            CALL blackboard(bestParticleProcessor(contP), st % NFE, st % higherNFE, st % totalNFE, st % doStop, &
             & doStopMPCA, op, st)
 
             do contP = 1, op % nParticlesProcessor
-                bestParticle(contP) = bestParticleProcessor
+                bestParticle(contP) = bestParticleProcessor(contP)
             enddo
 
             st % lastUpdate = st % NFE
@@ -394,17 +380,17 @@ PROGRAM MPCA
     !*************************
     do contP = 1, op % nParticlesProcessor
 
-        if (bestParticle(contP) % fitness < bestParticleProcessor % fitness) then
+        if (bestParticle(contP) % fitness < bestParticleProcessor(contP) % fitness) then
             bestParticleProcessor = bestParticle(contP)
         endif
 
     enddo
 
-    CALL blackboard(bestParticleProcessor, st % NFE, st % higherNFE, st % totalNFE, st % doStop, &
+    CALL blackboard(bestParticleProcessor(contP), st % NFE, st % higherNFE, st % totalNFE, st % doStop, &
             & doStopMPCA, op, st)
 
     do contP = 1, op % nParticlesProcessor
-        bestParticle(contP) = bestParticleProcessor
+        bestParticle(contP) = bestParticleProcessor(contP)
     enddo
 
     if (op % iProcessor == 0) then
@@ -413,19 +399,19 @@ PROGRAM MPCA
 
     if (op % iProcessor == 0) then
         OPEN(UNIT = 20, FILE = './output/final.out', ACCESS = 'APPEND')
-        write(20, '(ES14.6E2)',ADVANCE="NO") bestParticleProcessor % fitness
-        write(20, '(I2)',ADVANCE="NO") ceiling(bestParticleProcessor % solution(1))
-        write(20, '(I3)',ADVANCE="NO") ceiling(bestParticleProcessor % solution(2))
+        write(20, '(ES14.6E2)',ADVANCE="NO") bestParticleProcessor(contP) % fitness
+        write(20, '(I2)',ADVANCE="NO") ceiling(bestParticleProcessor(contP) % solution(1))
+        write(20, '(I3)',ADVANCE="NO") ceiling(bestParticleProcessor(contP) % solution(2))
 
-        if (ceiling(bestParticleProcessor % solution(1)) .GT. 1) then
-            write(20, '(I3)',ADVANCE="NO") ceiling(bestParticleProcessor % solution(3))
+        if (ceiling(bestParticleProcessor(contP) % solution(1)) .GT. 1) then
+            write(20, '(I3)',ADVANCE="NO") ceiling(bestParticleProcessor(contP) % solution(3))
         else
             write(20, '(I3)',ADVANCE="NO") 0
         endif
 
-        write(20, '(I2)',ADVANCE="NO") ceiling(bestParticleProcessor % solution(4))
-        write(20, '(ES14.6E2)',ADVANCE="NO") bestParticleProcessor % solution(5)
-        write(20, '(ES14.6E2)',ADVANCE="NO") bestParticleProcessor % solution(6)
+        write(20, '(I2)',ADVANCE="NO") ceiling(bestParticleProcessor(contP) % solution(4))
+        write(20, '(ES14.6E2)',ADVANCE="NO") bestParticleProcessor(contP) % solution(5)
+        write(20, '(ES14.6E2)',ADVANCE="NO") bestParticleProcessor(contP) % solution(6)
         CLOSE(20)
 
         if (op % verbose .eqv. .true.) then
@@ -437,23 +423,23 @@ PROGRAM MPCA
             write(*,*)
 
             CALL write_formatted('Best objective function value: ', 'bright normal', &
-                real_to_string_scientific(bestParticleProcessor % fitness, 1, 4, 3), 'normal')
+                real_to_string_scientific(bestParticleProcessor(contP) % fitness, 1, 4, 3), 'normal')
             CALL write_formatted('Number of hidden layers: ', 'bright normal', &
-                integer_to_string(ceiling(bestParticleProcessor % solution(1)), 2), 'normal')
+                integer_to_string(ceiling(bestParticleProcessor(contP) % solution(1)), 2), 'normal')
             CALL write_formatted('Neurons in hidden layer 1: ', 'bright normal', &
-                integer_to_string(ceiling(bestParticleProcessor % solution(2)), 2), 'normal')
+                integer_to_string(ceiling(bestParticleProcessor(contP) % solution(2)), 2), 'normal')
 
-            if (ceiling(bestParticleProcessor % solution(1)) == 2) then
+            if (ceiling(bestParticleProcessor(contP) % solution(1)) == 2) then
                 CALL write_formatted('Neurons in hidden layer 2: ', 'bright normal', &
-                    integer_to_string(ceiling(bestParticleProcessor % solution(3)), 2), 'normal')
+                    integer_to_string(ceiling(bestParticleProcessor(contP) % solution(3)), 2), 'normal')
             endif
 
             CALL write_formatted('Activation function: ', 'bright normal', &
-                integer_to_string(ceiling(bestParticleProcessor % solution(4)), 2), 'normal')
+                integer_to_string(ceiling(bestParticleProcessor(contP) % solution(4)), 2), 'normal')
             CALL write_formatted('Alpha: ', 'bright normal', &
-                real_to_string(bestParticleProcessor % solution(5), 1, 4), 'normal')
+                real_to_string(bestParticleProcessor(contP) % solution(5), 1, 4), 'normal')
             CALL write_formatted('Eta: ', 'bright normal', &
-                real_to_string(bestParticleProcessor % solution(6), 1, 4), 'normal')
+                real_to_string(bestParticleProcessor(contP) % solution(6), 1, 4), 'normal')
             CALL end_section('', 'normal')
 
         endif
@@ -464,9 +450,8 @@ PROGRAM MPCA
 
     deallocate(oldParticle)
     deallocate(newParticle)
-	deallocate(minB)
-	deallocate(maxB)
     deallocate(bestParticle)
+    deallocate(bestParticleProcessor)
     deallocate(config % x)
     deallocate(config % y)
 

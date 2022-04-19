@@ -271,6 +271,7 @@ CONTAINS
             print*,' Melhor particula: ', bo % fitness
             print*,' '
 
+
             DO i = 1, world_size - 1
                 CALL MPI_Recv(send, nDimensions + 4, MPI_REAL8, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE, ierr)
 

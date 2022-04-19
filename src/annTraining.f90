@@ -36,7 +36,6 @@ CONTAINS
         real (8), allocatable, dimension(:) :: gradientHiddenLayer1
         real (8), allocatable, dimension(:) :: gradientHiddenLayer2
 
-        real(8) :: meanSquaredErrorGen  ! erro quadratico medio da generalicao
         real (8), allocatable, dimension(:) :: errorClassTrain
         real (8), allocatable, dimension(:) :: errorClassValid
         real (8), allocatable, dimension(:,:) :: errorTrain
@@ -466,9 +465,9 @@ CONTAINS
 
 ! TERCEIRA FUNCAO OBJETIVO
 
-        meanSquaredErrorGen = neuralNetwork(config) ! funcao objetivo do Haroldo, aqui é chamado: annGeneralization.f90
+        config % meanSquaredErrorGen = neuralNetwork(config) ! funcao objetivo do Haroldo, aqui é chamado: annGeneralization.f90
         neuralNetworkTraining = penaltyObj &
-                & * ((alphaObj * config % MeanSquaredErrorTrain + betaObj * meanSquaredErrorGen) &
+                & * ((alphaObj * config % MeanSquaredErrorTrain + betaObj * config % meanSquaredErrorGen) &
                 & / (alphaObj + betaObj))
 
         ! Store configuration if objFunction is best
@@ -608,19 +607,24 @@ CONTAINS
             deallocate(config % wh2)
         endif
 
-        deallocate(deltaBiasHiddenLayer1, deltaBiasHiddenLayer1Last)
+        deallocate(deltaBiasHiddenLayer1)
+        deallocate(deltaBiasHiddenLayer1Last)
 
         if (config % hiddenLayers == 2) then
-	        deallocate(deltaBiasHiddenLayer2, deltaBiasHiddenLayer2Last)
-	        deallocate(deltaWeightHiddenLayer2, deltaWeightHiddenLayer2Last)
+	        deallocate(deltaBiasHiddenLayer2)
+            deallocate(deltaBiasHiddenLayer2Last)
+	        deallocate(deltaWeightHiddenLayer2)
+            deallocate(deltaWeightHiddenLayer2Last)
             deallocate(gradientHiddenLayer2)
 	    endif
 
-	    deallocate(deltaBiasOutput, deltaBiasOutputLast)
-        deallocate(deltaWeightHiddenLayer1, deltaWeightHiddenLayer1Last)
-        deallocate(deltaWeightOutput, deltaWeightOutputLast)
+	    deallocate(deltaBiasOutput)
+        deallocate(deltaBiasOutputLast)
+        deallocate(deltaWeightHiddenLayer1)
+        deallocate(deltaWeightHiddenLayer1Last)
+        deallocate(deltaWeightOutput)
+        deallocate(deltaWeightOutputLast)
         deallocate(gradientHiddenLayer1)
-
         deallocate(gradientOutput)
 
     END FUNCTION neuralNetworkTraining
