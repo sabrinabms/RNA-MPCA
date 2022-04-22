@@ -35,7 +35,7 @@ annGeneration
 
 # Outputs
 *.out
-*.txt
+# *.txt
 *.best
 
 # Bck
