@@ -233,7 +233,7 @@ CONTAINS
             enddo
 
         CASE (2) !Empirical parameters
-            open(12, file = trim('./data/nn.initial'), STATUS = "old")
+            open(12, file = trim('./datain/nn.initial'), STATUS = "old")
             read(12, *) config % hiddenLayers
             read(12, *) config % neuronsLayer(1)
             if(config % hiddenLayers == 2) then
@@ -491,7 +491,7 @@ CONTAINS
                 WRITE (str1, '(I3)') op % iExperiment
             endif
 
-            OPEN(12, FILE = './output/ann_e' // trim(str1) // '_p' // trim(str0) // '.out')
+            OPEN(12, FILE = './dataout/ann_e' // trim(str1) // '_p' // trim(str0) // '.out')
 
             write(12, '(A)') 'Objective Function (MPCA): '
             write(12, '(ES14.6E2)') st % bestObjectiveFunction

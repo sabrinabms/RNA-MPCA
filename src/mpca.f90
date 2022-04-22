@@ -165,7 +165,7 @@ PROGRAM MPCA
 
     if (op % iProcessor == 0) then
         if (op % iExperiment == 1) then
-            OPEN(UNIT = 2, FILE = './output/final.out', ACCESS = 'APPEND')
+            OPEN(UNIT = 2, FILE = './dataout/final.out', ACCESS = 'APPEND')
                 write(2,*)'F.OBJ, N.CAM, N.NEUR C1, N.NEUR C2, F.ATIV, ALFA, ETA'
             CLOSE(2)
         endif
@@ -212,13 +212,13 @@ PROGRAM MPCA
     allocate(config % x(config % nInputs, config % nClasses))
     allocate(config % y(config % nOutputs, config % nClasses))
 
-    OPEN (2, file = './data/x.txt')
+    OPEN (2, file = './datain/x.txt')
         do i = 1, config % nInputs
             read(2, *) (config % x(i, j), j = 1, config % nClasses)
         enddo
     CLOSE (2)
 
-    OPEN (2, file = './data/y.txt')
+    OPEN (2, file = './datain/y.txt')
         do I = 1, config % nOutputs
             read(2, *) (config % y(i, j), j = 1, config % nClasses)
         enddo
@@ -229,13 +229,13 @@ PROGRAM MPCA
         allocate(config % x_valid(config % nInputs, config % nClassesValidation))
         allocate(config % y_valid(config % nOutputs, config % nClassesValidation))
 
-        OPEN (1, file = './data/y_valid.txt')
+        OPEN (1, file = './datain/y_valid.txt')
             do i = 1, config % nOutputs
                 read(1, *) (config % y_valid(i, j), j = 1, config % nClassesValidation)
             enddo
         CLOSE (1)
 
-        OPEN (2, file = './data/x_valid.txt')
+        OPEN (2, file = './datain/x_valid.txt')
             do i = 1, config % nInputs
                 read(2, *) (config % x_valid(i, j), j = 1, config % nClassesValidation)
             enddo
@@ -342,7 +342,7 @@ PROGRAM MPCA
     endif
 
     if (op % iProcessor == 0) then
-        OPEN(UNIT = 20, FILE = './output/final.out', ACCESS = 'APPEND')
+        OPEN(UNIT = 20, FILE = './dataout/final.out', ACCESS = 'APPEND')
             write(20, '(ES14.6E2)',ADVANCE="NO") bestParticle % fitness
             write(20, '(I2)',ADVANCE="NO") ceiling(bestParticle % solution(1))
             write(20, '(I3)',ADVANCE="NO") ceiling(bestParticle % solution(2))

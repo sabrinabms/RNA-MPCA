@@ -53,13 +53,13 @@ CONTAINS
         !------------------------------------------------------------!
         !LENDO OS PARAMETROS DO ARQUIVO DE ENTRADA
         !------------------------------------------------------------!
-        OPEN (1, file = './data/y_gen.txt')
+        OPEN (1, file = './datain/y_gen.txt')
         DO I = 1, config % nOutputs
             READ(1, *) (y_gen(I, J), J = 1, config % nClassesGeneralization)
         END DO
         CLOSE (1)
 
-        OPEN (2, file = './data/x_gen.txt')
+        OPEN (2, file = './datain/x_gen.txt')
         DO I = 1, config % nInputs
             READ(2, *) (x_gen(I, J), J = 1, config % nClassesGeneralization)
         END DO
@@ -95,7 +95,7 @@ CONTAINS
         eqm = sum(errorClass) / dfloat(config % nClassesGeneralization)
 
     ! TRECHO COMENTADO PARA SER RESOLVIDO DEPOIS, NAO PODE SER APAGADO!!!!!
-    !    open(12, file = './output/result_generalization.out')
+    !    open(12, file = './dataout/result_generalization.out')
     !    fString = '(   F11.5)'
     !    write(fString(2:4), '(I3)') config % nOutputs
     !    do i = 1, config % nOutputs

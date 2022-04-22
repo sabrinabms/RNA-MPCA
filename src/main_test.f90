@@ -64,7 +64,7 @@ PROGRAM MAIN_TEST
 
     fstr = '(      F8.5)'
     write(fstr(2:7), '(I6)') config % nClassesTest
-    open(unit=20, file='./output/final.out', STATUS='OLD',ACTION='READ')
+    open(unit=20, file='./dataout/final.out', STATUS='OLD',ACTION='READ')
     read(20,'(A)') DUMMY
 
     bFitness = 1e+10
@@ -109,8 +109,8 @@ PROGRAM MAIN_TEST
         write(str1, '(i3)') bExperiment
     endif
 
-    fileNameBest = './output/ann_e' // trim(str1) // '.best'
-    fileNameBestofBest = './output/nn.best'
+    fileNameBest = './dataout/ann_e' // trim(str1) // '.best'
+    fileNameBestofBest = './dataout/nn.best'
 
     
     CMD = 'cp ' //trim(fileNameBest)// ' ' // trim(fileNameBestofBest)

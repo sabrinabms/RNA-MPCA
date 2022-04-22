@@ -50,13 +50,13 @@ CONTAINS
         !------------------------------------------------------------!
         !LENDO OS PARAMETROS DO ARQUIVO DE ENTRADA
         !------------------------------------------------------------!
-        OPEN (1, file = './data/y_test.txt')
+        OPEN (1, file = './datain/y_test.txt')
         DO I = 1, config % nOutputs
             READ(1, *) (y_test(I, J), J = 1, config % nClassesTest)
         END DO
         CLOSE (1)
 
-        OPEN (2, file = './data/x_test.txt')
+        OPEN (2, file = './datain/x_test.txt')
         DO I = 1, config % nInputs
             READ(2, *) (x_test(I, J), J = 1, config % nClassesTest)
         END DO
@@ -64,7 +64,7 @@ CONTAINS
 
         print*, " Number of test classes: ", config % nClassesTest
 
-        open(12, file =  "./output/nn.best", STATUS = "old")
+        open(12, file =  "./dataout/nn.best", STATUS = "old")
 
         read(12, *) dummy !Funcao objetivo do MPCA
         read(12, *) dummy
@@ -135,8 +135,8 @@ CONTAINS
     !----------------------------------------------------------------------!
     ! INICIO DA REDE: FEEDFORWARD
     !----------------------------------------------------------------------!
-    open(11, file = './output/result_test.out', access = 'append')
-    open(12, file = './output/errors_test.out', access = 'append')
+    open(11, file = './dataout/result_test.out', access = 'append')
+    open(12, file = './dataout/errors_test.out', access = 'append')
 !    fString = '(   F11.5)'
 !    write(fString(2:4), '(I3)') config % nOutputs
 
@@ -157,7 +157,6 @@ CONTAINS
 
         !ACTIVATING OUTPUT
         ys = activation(vs, config % activationFunction)
-        print*, ys
         write(11, *) ys !(ys(i, j), j = 1, config % nOutputs)
 
         !CALCULO ERRO TESTE
@@ -167,8 +166,9 @@ CONTAINS
         write(12, *)error
 
     ENDDO
+    close(11)
     close(12)
-    open(12, file = './output/eqm_test.out')
+    open(12, file = './dataout/eqm_test.out')
     eqm = sum(errorClass) / dfloat(config % nClassesTest)
     write(12,*)eqm
     close(12)
