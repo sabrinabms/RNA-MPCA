@@ -60,7 +60,7 @@ $(BUILDDIR)/%.o: $(VPATH)/%.f90
 	$(FC) $(FFLAGS) $< -o $@
 
 clean:	removemod
-	rm -rf *.*~ Makefile~ build/*.o *.mod annTest annTest annMPCA dataout/*.out dataout/*.best \
+	rm -rf *.*~ Makefile~ build/*.o *.mod annTest annTest annMPCA dataout/*.out dataout/*.best
 
 removemod:
 	rm -f build/*.o *.mod

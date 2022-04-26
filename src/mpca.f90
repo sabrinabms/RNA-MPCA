@@ -164,6 +164,12 @@ PROGRAM MPCA
     endif
 
     if (op % iProcessor == 0) then
+
+         if (op % verbose .eqv. .true.) then
+            str = integer_to_string(op % iExperiment, 3)
+            CALL start_section2('Experiment ' // trim(str), 'normal')
+        endif
+
         if (op % iExperiment == 1) then
             OPEN(UNIT = 2, FILE = './dataout/final.out', ACCESS = 'APPEND')
                 write(2,*)'F.OBJ, N.CAM, N.NEUR C1, N.NEUR C2, F.ATIV, ALFA, ETA'
@@ -257,8 +263,7 @@ PROGRAM MPCA
     doStopMPCA = .false.
 
     bestParticle % fitness = huge(0.D0)
-
-
+ 
     !*****************************
     ! CREATING INITIAL POPULATION
     !*****************************
@@ -289,9 +294,9 @@ PROGRAM MPCA
     ! PRINCIPAL LOOP
     !***************************************************************************
     ! do while ((st % higherNFE .LE. op % maxNFE / op % nProcessors) &
-    !     .and. (st % NFE .LE. op % maxNFE / op % nProcessors) &
-    !     .and. (st % totalNFE .LE. op % maxNFE) &
-    !     .and. (.not. doStopMPCA))
+        ! .and. (st % NFE .LE. op % maxNFE / op % nProcessors) &
+        ! .and. (st % totalNFE .LE. op % maxNFE) &
+        ! .and. (.not. doStopMPCA))
     do while (st % NFE .LE. op % maxNFE / op % nProcessors)
 
         CALL Perturbation(oldParticle, newParticle, bestParticle, op, st, config)
