@@ -30,13 +30,20 @@
 *.exe
 *.out
 *.app
+annTraining
+annGeneration
 
 # Outputs
 *.out
-*.txt
+# *.txt
 *.best
 
 # Bck
 *.bck
 *_bck
 *-checkpoint.ipynb
+
+# zipados
+*.tar 
+*.gz
+*.tar.gz

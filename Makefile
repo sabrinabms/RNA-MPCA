@@ -1,72 +1,66 @@
-#Compilador Tupa
-#CC=ftn 
-
 #Compilador 
 FC = mpif90
 
 # Opcoes de compilacao
-FFLAGS = -c -O3 -g -w
+FFLAGS = -c 	\
+         -O3 	\
+		 -g		\
+		 -w
 
 # Opcoes de otimizacao
-FFLAGSOPT = -O3 -g -w
+FFLAGSOPT = -O3	\
+            -g	\
+			-w
 
 VPATH = src
 MODDIR = mod
 BUILDDIR = build
+OUTDIR = dataout
 
 # Arquivos objeto do annMPCA
 SRCMPCA := $(BUILDDIR)/foul.o \
-$(BUILDDIR)/uniformR8.o \
-$(BUILDDIR)/newTypes.o \
-$(BUILDDIR)/normalR8.o \
-$(BUILDDIR)/annGeneralization.o \
-$(BUILDDIR)/annTraining.o \
-$(BUILDDIR)/mpcaFunctions.o \
-$(BUILDDIR)/mpca.o
+		   $(BUILDDIR)/uniformR8.o \
+		   $(BUILDDIR)/newTypes.o \
+		   $(BUILDDIR)/normalR8.o \
+		   $(BUILDDIR)/rnaFunctions.o \
+		   $(BUILDDIR)/annGeneralization.o \
+		   $(BUILDDIR)/annTraining.o \
+		   $(BUILDDIR)/mpcaFunctions.o \
+		   $(BUILDDIR)/mpca.o
 
 # Arquivos objeto do annTest
-SRCMLP := $(BUILDDIR)/foul.o \
-$(BUILDDIR)/newTypes.o \
-$(BUILDDIR)/annGeneralization.o \
-$(BUILDDIR)/main_generalization.o
-
-# Arquivos objeto do annActivation
-SRCACTIVATION := $(BUILDDIR)/foul.o \
-$(BUILDDIR)/newTypes.o \
-$(BUILDDIR)/annActivation.o \
-$(BUILDDIR)/main_activation.o
-
+SRCTEST := $(BUILDDIR)/foul.o \
+		   $(BUILDDIR)/rnaFunctions.o \
+		   $(BUILDDIR)/newTypes.o \
+		   $(BUILDDIR)/annTest.o \
+		   $(BUILDDIR)/main_test.o
 
 all: 	$(BUILDDIR)/foul.o \
-	$(BUILDDIR)/newTypes.o \
-	$(BUILDDIR)/uniformR8.o \
-	$(BUILDDIR)/normalR8.o \
-	$(BUILDDIR)/annGeneralization.o \
-	$(BUILDDIR)/annTraining.o \
-	$(BUILDDIR)/mpcaFunctions.o \
-	$(BUILDDIR)/mpca.o \
-	$(BUILDDIR)/annActivation.o \
-	$(BUILDDIR)/main_generalization.o \
-	$(BUILDDIR)/main_activation.o \
-	annMPCA \
-	annTest \
-	annActivation
+		$(BUILDDIR)/newTypes.o \
+		$(BUILDDIR)/uniformR8.o \
+		$(BUILDDIR)/normalR8.o \
+		$(BUILDDIR)/rnaFunctions.o \
+		$(BUILDDIR)/annGeneralization.o \
+		$(BUILDDIR)/annTraining.o \
+		$(BUILDDIR)/mpcaFunctions.o \
+		$(BUILDDIR)/mpca.o \
+		$(BUILDDIR)/annTest.o \
+		$(BUILDDIR)/main_test.o \
+		annMPCA \
+		annTest
 
 annMPCA:
 	$(FC) $(FFLAGSOPT) -o annMPCA $(SRCMPCA)
 
 annTest:
-	$(FC) $(FFLAGSOPT) -o annTest $(SRCMLP)
-
-annActivation:
-	$(FC) $(FFLAGSOPT) -o annActivation $(SRCACTIVATION)
+	$(FC) $(FFLAGSOPT) -o annTest $(SRCTEST)
 
 $(BUILDDIR)/%.o: $(VPATH)/%.f90
 	@mkdir -p $(@D)
 	$(FC) $(FFLAGS) $< -o $@
 
 clean:	removemod
-	rm -rf *.*~ Makefile~ build/*.o *.mod annActivation annTest annMPCA
+	rm -rf *.*~ Makefile~ build/*.o *.mod annTest annTest annMPCA dataout/*.out dataout/*.best
 
 removemod:
 	rm -f build/*.o *.mod
